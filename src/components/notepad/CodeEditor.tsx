@@ -1,5 +1,6 @@
 import type { editor } from 'monaco-editor'
 import Editor from '@monaco-editor/react'
+import { useThemeStore } from '@/stores/theme'
 
 interface CodeEditorProps {
   value: string
@@ -10,6 +11,8 @@ interface CodeEditorProps {
 }
 
 export function CodeEditor({ value, language, onChange, onMount, readOnly }: CodeEditorProps) {
+  const mode = useThemeStore((s) => s.resolved.mode)
+
   return (
     <div className="h-full w-full">
       <Editor
@@ -18,7 +21,7 @@ export function CodeEditor({ value, language, onChange, onMount, readOnly }: Cod
         value={value}
         onChange={(v) => onChange(v ?? '')}
         onMount={onMount}
-        theme="vs-dark"
+        theme={mode === 'dark' ? 'vs-dark' : 'light'}
         options={{
           fontSize: 14,
           minimap: { enabled: true },

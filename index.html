@@ -9,6 +9,38 @@
     <title>Productivity Suite</title>
   </head>
   <body class="bg-[var(--color-bg)] text-[var(--color-text)] antialiased">
+    <script>
+    // Flash prevention: apply theme before React hydrates
+    (function(){
+      try {
+        var pref = JSON.parse(localStorage.getItem('theme-preference') || '{}');
+        var mode = localStorage.getItem('theme-mode') || 'dark';
+        var el = document.documentElement;
+        // Modern SaaS dark (default)
+        var darkColors = {
+          bg:'#0f0f23',bgSecondary:'#1a1a2e',bgTertiary:'#252540',
+          bgHover:'rgba(255,255,255,0.06)',bgActive:'rgba(255,255,255,0.1)',
+          text:'#e5e5ea',textSecondary:'#98989d',textTertiary:'#636366',
+          border:'#38383a',borderLight:'#2c2c2e',
+          accent:'#0a84ff',accentHover:'#409cff',accentLight:'rgba(10,132,255,0.15)',
+          success:'#30d158',warning:'#ff9f0a',error:'#ff453a',info:'#64d2ff'
+        };
+        var lightColors = {
+          bg:'#ffffff',bgSecondary:'#f5f5f7',bgTertiary:'#e8e8ed',
+          bgHover:'rgba(0,0,0,0.04)',bgActive:'rgba(0,0,0,0.08)',
+          text:'#1d1d1f',textSecondary:'#6e6e73',textTertiary:'#aeaeb2',
+          border:'#d2d2d7',borderLight:'#e5e5ea',
+          accent:'#0071e3',accentHover:'#0077ed',accentLight:'rgba(0,113,227,0.1)',
+          success:'#30d158',warning:'#ff9f0a',error:'#ff453a',info:'#64d2ff'
+        };
+        var isDark = mode === 'dark';
+        var colors = isDark ? darkColors : lightColors;
+        for (var k in colors) { el.style.setProperty('--color-' + k.replace(/([A-Z])/g,'-$1').toLowerCase(), colors[k]); }
+        el.style.setProperty('--color-surface', colors.bgSecondary);
+        el.setAttribute('data-mode', mode);
+      } catch(e) {}
+    })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

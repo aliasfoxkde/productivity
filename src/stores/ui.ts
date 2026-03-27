@@ -1,15 +1,13 @@
 import { create } from 'zustand'
-import type { Theme, TabState } from '@/types'
+import type { TabState } from '@/types'
 
 interface UIState {
-  theme: Theme
   sidebarOpen: boolean
   sidebarWidth: number
   commandPaletteOpen: boolean
   tabs: TabState[]
   activeTabId: string | null
 
-  setTheme: (theme: Theme) => void
   toggleSidebar: () => void
   setSidebarWidth: (width: number) => void
   openCommandPalette: () => void
@@ -23,20 +21,11 @@ interface UIState {
 }
 
 export const useUIStore = create<UIState>((set) => ({
-  theme: 'dark',
   sidebarOpen: true,
   sidebarWidth: 260,
   commandPaletteOpen: false,
   tabs: [],
   activeTabId: null,
-
-  setTheme: (theme) => {
-    set({ theme })
-    const resolved = theme === 'system'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      : theme
-    document.documentElement.setAttribute('data-theme', resolved)
-  },
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarWidth: (width) => set({ sidebarWidth: width }),

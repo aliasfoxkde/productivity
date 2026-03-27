@@ -1,29 +1,11 @@
-import { useEffect } from 'react'
-import { useUIStore } from '@/stores/ui'
+import { useThemeStore } from '@/stores/theme'
 
-/** Initialize theme from system preference and apply on change */
+/** Hook for accessing the current theme state and actions */
 export function useTheme() {
-  const theme = useUIStore((s) => s.theme)
-  const setTheme = useUIStore((s) => s.setTheme)
+  const preference = useThemeStore((s) => s.preference)
+  const resolved = useThemeStore((s) => s.resolved)
+  const setPreset = useThemeStore((s) => s.setPreset)
+  const toggleMode = useThemeStore((s) => s.toggleMode)
 
-  useEffect(() => {
-    // Apply initial theme
-    const resolved =
-      theme === 'system'
-        ? window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        : theme
-    document.documentElement.setAttribute('data-theme', resolved)
-
-    // Listen for system changes
-    if (theme === 'system') {
-      const mq = window.matchMedia('(prefers-color-scheme: dark)')
-      const handler = (e: MediaQueryListEvent) => {
-        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light')
-      }
-      mq.addEventListener('change', handler)
-      return () => mq.removeEventListener('change', handler)
-    }
-  }, [theme])
-
-  return { theme, setTheme }
+  return { preference, resolved, setPreset, toggleMode }
 }

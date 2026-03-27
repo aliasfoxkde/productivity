@@ -8,11 +8,18 @@ import {
   Info,
   Trash2,
   Database,
+  RotateCcw,
+  Sparkles,
+  Zap,
+  Layers,
+  Terminal,
 } from 'lucide-react'
-import { useUIStore } from '@/stores/ui'
 import { cn } from '@/lib/utils'
 import { dbCount, STORES } from '@/lib/storage'
 import type { StoreName } from '@/lib/storage'
+import { useThemeStore } from '@/stores/theme'
+import { THEME_PRESETS } from '@/lib/themes'
+import type { ThemePresetId } from '@/types'
 
 const SHORTCUTS = [
   { keys: ['Cmd', 'K'], description: 'Open command palette' },
@@ -24,10 +31,21 @@ const SHORTCUTS = [
   { keys: ['Escape'], description: 'Close modal / deselect' },
 ]
 
+const PRESET_ICONS: Record<ThemePresetId, typeof Sparkles> = {
+  'modern-saas': Sparkles,
+  'bold-vibrant': Zap,
+  'glass-blur': Layers,
+  'dark-pro': Terminal,
+}
+
 export function Settings() {
-  const theme = useUIStore((s) => s.theme)
-  const setTheme = useUIStore((s) => s.setTheme)
+  const preference = useThemeStore((s) => s.preference)
+  const resolved = useThemeStore((s) => s.resolved)
+  const setPreset = useThemeStore((s) => s.setPreset)
+  const resetPreset = useThemeStore((s) => s.resetPreset)
+  const updateTokens = useThemeStore((s) => s.updateTokens)
   const [activeSection, setActiveSection] = useState<string>('appearance')
+  const [showCustomize, setShowCustomize] = useState(false)
   const [storageInfo, setStorageInfo] = useState<Record<string, number>>({})
 
   const loadStorageInfo = async () => {
@@ -79,32 +97,178 @@ export function Settings() {
         {activeSection === 'appearance' && (
           <div>
             <h2 className="text-lg font-semibold text-[var(--color-text)] mb-1">Appearance</h2>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-6">Customize how the suite looks and feels.</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-6">Choose a theme preset and customize colors.</p>
 
+            {/* Preset grid */}
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-[var(--color-text)] mb-3">Theme</h3>
+              <h3 className="text-sm font-medium text-[var(--color-text)] mb-3">Theme Preset</h3>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {/* System card */}
+                <button
+                  onClick={() => setPreset('system')}
+                  className={cn(
+                    'flex flex-col items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-colors',
+                    preference.preset === 'system'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-accent-light)]'
+                      : 'border-[var(--color-border)] hover:border-[var(--color-text-tertiary)]',
+                  )}
+                >
+                  <Monitor size={20} className={preference.preset === 'system' ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-secondary)]'} />
+                  <span className="text-xs font-medium text-[var(--color-text)]">System</span>
+                </button>
+
+                {(['modern-saas', 'bold-vibrant', 'glass-blur', 'dark-pro'] as const).map((presetId) => {
+                  const preset = THEME_PRESETS[presetId]
+                  const tokens = preset.dark.colors
+                  const Icon = PRESET_ICONS[presetId]
+                  const isActive = preference.preset === presetId
+                  return (
+                    <button
+                      key={presetId}
+                      onClick={() => setPreset(presetId)}
+                      className={cn(
+                        'flex flex-col items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-colors',
+                        isActive
+                          ? 'border-[var(--color-accent)] bg-[var(--color-accent-light)]'
+                          : 'border-[var(--color-border)] hover:border-[var(--color-text-tertiary)]',
+                      )}
+                    >
+                      {/* Color swatch */}
+                      <div className="flex gap-1">
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: tokens.bg, border: `1px solid ${tokens.border}` }} />
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: tokens.accent }} />
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: tokens.text }} />
+                      </div>
+                      <Icon size={14} className={isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-secondary)]'} />
+                      <span className="text-xs font-medium text-[var(--color-text)]">{preset.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Active theme info */}
+            <div className="mb-4 px-3 py-2 rounded-lg bg-[var(--color-bg-secondary)] text-xs text-[var(--color-text-secondary)]">
+              Active: <span className="text-[var(--color-text)] font-medium">{THEME_PRESETS[(preference.preset === 'system' ? 'modern-saas' : preference.preset) as ThemePresetId]?.label ?? 'System'}</span>
+              {' '}({resolved.mode})
+            </div>
+
+            {/* Customize toggle */}
+            <button
+              onClick={() => setShowCustomize(!showCustomize)}
+              className="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3 cursor-pointer hover:text-[var(--color-accent)] transition-colors"
+            >
+              <Palette size={14} />
+              {showCustomize ? 'Hide customization' : 'Customize colors...'}
+            </button>
+
+            {/* Color customization */}
+            {showCustomize && (
+              <div className="space-y-3 p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--color-text-secondary)]">Accent Color</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={resolved.tokens.colors.accent}
+                      onChange={(e) => updateTokens({ colors: { ...resolved.tokens.colors, accent: e.target.value } })}
+                      className="w-8 h-6 rounded cursor-pointer border-0"
+                    />
+                    <span className="text-xs font-mono text-[var(--color-text-tertiary)]">{resolved.tokens.colors.accent}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--color-text-secondary)]">Background</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={resolved.tokens.colors.bg}
+                      onChange={(e) => updateTokens({ colors: { ...resolved.tokens.colors, bg: e.target.value } })}
+                      className="w-8 h-6 rounded cursor-pointer border-0"
+                    />
+                    <span className="text-xs font-mono text-[var(--color-text-tertiary)]">{resolved.tokens.colors.bg}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--color-text-secondary)]">Surface</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={resolved.tokens.colors.bgSecondary}
+                      onChange={(e) => updateTokens({ colors: { ...resolved.tokens.colors, bgSecondary: e.target.value } })}
+                      className="w-8 h-6 rounded cursor-pointer border-0"
+                    />
+                    <span className="text-xs font-mono text-[var(--color-text-tertiary)]">{resolved.tokens.colors.bgSecondary}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--color-text-secondary)]">Text</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={resolved.tokens.colors.text}
+                      onChange={(e) => updateTokens({ colors: { ...resolved.tokens.colors, text: e.target.value } })}
+                      className="w-8 h-6 rounded cursor-pointer border-0"
+                    />
+                    <span className="text-xs font-mono text-[var(--color-text-tertiary)]">{resolved.tokens.colors.text}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--color-text-secondary)]">Border</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={resolved.tokens.colors.border}
+                      onChange={(e) => updateTokens({ colors: { ...resolved.tokens.colors, border: e.target.value } })}
+                      className="w-8 h-6 rounded cursor-pointer border-0"
+                    />
+                    <span className="text-xs font-mono text-[var(--color-text-tertiary)]">{resolved.tokens.colors.border}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={resetPreset}
+                  className="flex items-center gap-1.5 mt-2 px-2 py-1 rounded text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-hover)] cursor-pointer transition-colors"
+                >
+                  <RotateCcw size={12} />
+                  Reset to default
+                </button>
+              </div>
+            )}
+
+            {/* Light/Dark toggle */}
+            <div className="mt-4">
+              <h3 className="text-sm font-medium text-[var(--color-text)] mb-3">Mode</h3>
               <div className="flex gap-3">
-                {([
-                  { value: 'light' as const, label: 'Light', icon: Sun },
-                  { value: 'dark' as const, label: 'Dark', icon: Moon },
-                  { value: 'system' as const, label: 'System', icon: Monitor },
-                ]).map(({ value, label, icon: Icon }) => (
-                  <button
-                    key={value}
-                    onClick={() => setTheme(value)}
-                    className={cn(
-                      'flex flex-col items-center gap-2 p-4 rounded-lg border-2 w-28 cursor-pointer transition-colors',
-                      theme === value
-                        ? 'border-blue-500 bg-blue-500/5'
-                        : 'border-[var(--color-border)] hover:border-[var(--color-text-tertiary)]',
-                    )}
-                  >
-                    <Icon size={20} className={theme === value ? 'text-blue-500' : 'text-[var(--color-text-secondary)]'} />
-                    <span className={cn('text-xs font-medium', theme === value ? 'text-blue-500' : 'text-[var(--color-text)]')}>
-                      {label}
-                    </span>
-                  </button>
-                ))}
+                <button
+                  onClick={() => {
+                    const { toggleMode } = useThemeStore.getState()
+                    toggleMode()
+                  }}
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-colors',
+                    resolved.mode === 'dark'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-accent-light)]'
+                      : 'border-[var(--color-border)]',
+                  )}
+                >
+                  <Moon size={14} />
+                  <span className="text-xs font-medium text-[var(--color-text)]">Dark</span>
+                </button>
+                <button
+                  onClick={() => {
+                    const { toggleMode } = useThemeStore.getState()
+                    toggleMode()
+                  }}
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-colors',
+                    resolved.mode === 'light'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-accent-light)]'
+                      : 'border-[var(--color-border)]',
+                  )}
+                >
+                  <Sun size={14} />
+                  <span className="text-xs font-medium text-[var(--color-text)]">Light</span>
+                </button>
               </div>
             </div>
           </div>

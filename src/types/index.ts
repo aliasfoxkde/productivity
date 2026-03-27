@@ -63,3 +63,53 @@ export interface TabState {
 
 /** Theme */
 export type Theme = 'light' | 'dark' | 'system'
+
+/** Named theme presets */
+export type ThemePresetId = 'modern-saas' | 'bold-vibrant' | 'glass-blur' | 'dark-pro'
+
+/** Theme color tokens */
+export interface ThemeColorTokens {
+  bg: string
+  bgSecondary: string
+  bgTertiary: string
+  bgHover: string
+  bgActive: string
+  text: string
+  textSecondary: string
+  textTertiary: string
+  border: string
+  borderLight: string
+  accent: string
+  accentHover: string
+  accentLight: string
+  success: string
+  warning: string
+  error: string
+  info: string
+}
+
+/** Full theme token set */
+export interface ThemeTokens {
+  colors: ThemeColorTokens
+  radius: { sm: string; md: string; lg: string; xl: string }
+  shadows: { sm: string; md: string; lg: string; xl: string }
+  glass?: {
+    enabled: boolean
+    blur: string
+    backgroundOpacity: number
+    borderOpacity: number
+  }
+}
+
+/** User's persisted theme preference */
+export interface ThemePreference {
+  preset: ThemePresetId | 'system'
+  overrides: Partial<Record<ThemePresetId, Partial<ThemeTokens>>>
+}
+
+/** Resolved theme at runtime */
+export interface ResolvedTheme {
+  presetId: ThemePresetId | 'system'
+  mode: 'light' | 'dark'
+  tokens: ThemeTokens
+}

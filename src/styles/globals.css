@@ -2,12 +2,13 @@
 
 /* Design tokens as CSS custom properties */
 :root {
-  /* Colors */
+  /* Colors — fallback defaults (Modern SaaS light) */
   --color-bg: #ffffff;
   --color-bg-secondary: #f5f5f7;
   --color-bg-tertiary: #e8e8ed;
   --color-bg-hover: rgba(0, 0, 0, 0.04);
   --color-bg-active: rgba(0, 0, 0, 0.08);
+  --color-surface: var(--color-bg-secondary);
 
   --color-text: #1d1d1f;
   --color-text-secondary: #6e6e73;
@@ -63,31 +64,17 @@
   --sidebar-width: 260px;
   --topbar-height: 48px;
   --statusbar-height: 28px;
+
+  /* Theme transition */
+  --theme-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Dark theme */
-[data-theme="dark"] {
-  --color-bg: #0f0f23;
-  --color-bg-secondary: #1a1a2e;
-  --color-bg-tertiary: #252540;
-  --color-bg-hover: rgba(255, 255, 255, 0.06);
-  --color-bg-active: rgba(255, 255, 255, 0.1);
-
-  --color-text: #e5e5ea;
-  --color-text-secondary: #98989d;
-  --color-text-tertiary: #636366;
-
-  --color-border: #38383a;
-  --color-border-light: #2c2c2e;
-
-  --color-accent: #0a84ff;
-  --color-accent-hover: #409cff;
-  --color-accent-light: rgba(10, 132, 255, 0.15);
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
+/* Glass/Blur theme — frosted glass panels */
+[data-glass] .glass-panel {
+  background: color-mix(in srgb, var(--color-bg-secondary) var(--glass-bg-opacity, 0.72), transparent);
+  backdrop-filter: blur(var(--glass-blur, 20px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px));
+  border-color: color-mix(in srgb, var(--color-border) var(--glass-border-opacity, 0.08), transparent);
 }
 
 /* Base styles */
@@ -111,6 +98,7 @@ body {
   background-color: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: var(--theme-transition);
 }
 
 /* Scrollbar styles */
@@ -147,4 +135,33 @@ body {
 /* Transitions */
 a, button {
   transition: color 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+/* ReactFlow theme overrides */
+.react-flow__background {
+  background-color: var(--color-bg) !important;
+}
+.react-flow__controls {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.react-flow__controls-button {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  fill: var(--color-text-secondary);
+}
+.react-flow__controls-button:hover {
+  background: var(--color-bg-hover);
+}
+.react-flow__minimap {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.react-flow__edge-path {
+  stroke: var(--color-text-tertiary);
+}
+.react-flow__attribution {
+  background: transparent !important;
 }
