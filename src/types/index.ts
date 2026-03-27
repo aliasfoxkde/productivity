@@ -22,7 +22,7 @@ export interface SuiteDocument {
   id: string
   type: DocumentType
   title: string
-  content: DocumentNode[]
+  content: string
   createdAt: string
   updatedAt: string
   version: number

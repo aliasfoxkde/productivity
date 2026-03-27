@@ -30,9 +30,10 @@ interface SpreadsheetState {
 
 const EMPTY_CELL: SpreadsheetCell = { raw: '', computed: null }
 
+const firstSheetId = generateId()
 export const useSpreadsheetStore = create<SpreadsheetState>((set, get) => ({
-  sheets: [{ id: generateId(), name: 'Sheet 1', cells: {} }],
-  activeSheetId: '',
+  sheets: [{ id: firstSheetId, name: 'Sheet 1', cells: {} }],
+  activeSheetId: firstSheetId,
 
   getActiveSheet: () => {
     const { sheets, activeSheetId } = get()
@@ -53,7 +54,7 @@ export const useSpreadsheetStore = create<SpreadsheetState>((set, get) => ({
 
         // Evaluate formula
         const getCell = (cellRef: CellRef) => {
-          const key = String.fromCharCode(64 + cellRef.col) + cellRef.row
+          const key = String.fromCharCode(65 + cellRef.col) + cellRef.row
           const cell = sheet.cells[key]
           if (!cell) return null
           return cell.computed
@@ -106,7 +107,7 @@ export const useSpreadsheetStore = create<SpreadsheetState>((set, get) => ({
         for (const [ref, cell] of Object.entries(sheet.cells)) {
           if (cell.raw.startsWith('=')) {
             const getCell = (cellRef: CellRef) => {
-              const key = String.fromCharCode(64 + cellRef.col) + cellRef.row
+              const key = String.fromCharCode(65 + cellRef.col) + cellRef.row
               const c = newCells[key] || sheet.cells[key]
               if (!c) return null
               return c.computed

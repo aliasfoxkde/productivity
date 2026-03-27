@@ -34,7 +34,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       id: generateId(),
       type,
       title: title || `Untitled ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      content: [],
+      content: '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       version: 1,
