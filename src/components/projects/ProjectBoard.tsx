@@ -1,17 +1,10 @@
 import { useState, useCallback } from 'react'
 import {
   Plus,
-  MoreHorizontal,
   Search,
   LayoutGrid,
   List,
   Kanban,
-  Calendar,
-  ChevronDown,
-  CheckSquare,
-  Tag,
-  MessageSquare,
-  Clock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -361,20 +354,6 @@ export function ProjectBoard() {
       taskIds: col.taskIds.filter((tid) => tid !== id),
     })))
     setSelectedTaskId(null)
-  }, [])
-
-  const moveTask = useCallback((taskId: string, toColumnId: string) => {
-    setTasks((t) => t.map((task) => task.id === taskId ? { ...task, status: toColumnId } : task))
-    setColumns((cols) =>
-      cols.map((col) => ({
-        ...col,
-        taskIds: col.taskIds.filter((id) => id !== taskId),
-      })).map((col) =>
-        col.id === toColumnId
-          ? { ...col, taskIds: [...col.taskIds, taskId] }
-          : col
-      )
-    )
   }, [])
 
   const stats = {

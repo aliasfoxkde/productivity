@@ -12,6 +12,7 @@ import {
 import { useUIStore } from '@/stores/ui'
 import { cn } from '@/lib/utils'
 import { dbCount, STORES } from '@/lib/storage'
+import type { StoreName } from '@/lib/storage'
 
 const SHORTCUTS = [
   { keys: ['Cmd', 'K'], description: 'Open command palette' },
@@ -33,7 +34,7 @@ export function Settings() {
     const counts: Record<string, number> = {}
     for (const [key, storeName] of Object.entries(STORES)) {
       try {
-        counts[key] = await dbCount(storeName as any)
+        counts[key] = await dbCount(storeName as StoreName)
       } catch {
         counts[key] = 0
       }
@@ -140,7 +141,7 @@ export function Settings() {
             <p className="text-sm text-[var(--color-text-secondary)] mb-6">Local storage used by the application.</p>
 
             <div className="space-y-2 mb-6">
-              {Object.entries(STORES).map(([key, storeName]) => (
+              {Object.entries(STORES).map(([key]) => (
                 <div key={key} className="flex items-center justify-between py-2 px-3 rounded-lg bg-[var(--color-bg-secondary)]">
                   <span className="text-sm text-[var(--color-text)] capitalize">{key}</span>
                   <span className="text-xs text-[var(--color-text-tertiary)]">

@@ -37,7 +37,7 @@ describe('IndexedDB Storage', () => {
     await dbPut(STORES.documents, { id: 'c', title: 'C', type: 'doc', data: {} })
     const all = await dbGetAll(STORES.documents)
     expect(all).toHaveLength(3)
-    expect(all.map((d: any) => d.id).sort()).toEqual(['a', 'b', 'c'])
+    expect(all.map((d: { id: string }) => d.id).sort()).toEqual(['a', 'b', 'c'])
   })
 
   it('deletes a document', async () => {

@@ -5,11 +5,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
-  Type,
-  Square,
-  Image as ImageIcon,
-  List,
-  AlignCenter,
   Palette,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'

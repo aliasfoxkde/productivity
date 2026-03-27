@@ -5,9 +5,6 @@ import {
   Circle,
   Type,
   Minus,
-  Image as ImageIcon,
-  Layers,
-  Palette,
   Download,
   Undo2,
   Redo2,
@@ -15,8 +12,6 @@ import {
   ZoomOut,
   Maximize2,
   Trash2,
-  Move,
-  Pen,
   Star,
   Triangle,
 } from 'lucide-react'
@@ -131,7 +126,7 @@ function renderElement(ctx: CanvasRenderingContext2D, el: DesignElement, scale: 
         const angle = (Math.PI * i) / spikes - Math.PI / 2
         const px = cx + r * Math.cos(angle)
         const py = cy + r * Math.sin(angle)
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)
+        if (i === 0) { ctx.moveTo(px, py) } else { ctx.lineTo(px, py) }
       }
       ctx.closePath()
       if (el.fill !== 'transparent') ctx.fill()

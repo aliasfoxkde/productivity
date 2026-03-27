@@ -54,6 +54,42 @@ interface EditorProps {
   editable?: boolean
 }
 
+function ToolbarButton({
+  onClick,
+  isActive,
+  icon,
+  title,
+  disabled,
+}: {
+  onClick: () => void
+  isActive?: boolean
+  icon: React.ReactNode
+  title: string
+  disabled?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={cn(
+        'p-1.5 rounded-md transition-colors cursor-pointer',
+        'hover:bg-[var(--color-bg-hover)]',
+        'disabled:opacity-30 disabled:pointer-events-none',
+        isActive && 'bg-[var(--color-accent-light)] text-[var(--color-accent)]',
+      )}
+    >
+      {icon}
+    </button>
+  )
+}
+
+function ToolbarDivider() {
+  return (
+    <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
+  )
+}
+
 export function Editor({ content, onUpdate, editable = true }: EditorProps) {
   const editor = useEditor({
     extensions: [
@@ -126,38 +162,6 @@ export function Editor({ content, onUpdate, editable = true }: EditorProps) {
 
   if (!editor) return null
 
-  const ToolbarButton = ({
-    onClick,
-    isActive,
-    icon,
-    title,
-    disabled,
-  }: {
-    onClick: () => void
-    isActive?: boolean
-    icon: React.ReactNode
-    title: string
-    disabled?: boolean
-  }) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className={cn(
-        'p-1.5 rounded-md transition-colors cursor-pointer',
-        'hover:bg-[var(--color-bg-hover)]',
-        'disabled:opacity-30 disabled:pointer-events-none',
-        isActive && 'bg-[var(--color-accent-light)] text-[var(--color-accent)]',
-      )}
-    >
-      {icon}
-    </button>
-  )
-
-  const Divider = () => (
-    <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
-  )
-
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
@@ -175,7 +179,7 @@ export function Editor({ content, onUpdate, editable = true }: EditorProps) {
           icon={<Redo2 size={15} />}
           title="Redo"
         />
-        <Divider />
+        <ToolbarDivider />
 
         {/* Headings */}
         <ToolbarButton
@@ -196,7 +200,7 @@ export function Editor({ content, onUpdate, editable = true }: EditorProps) {
           icon={<Heading3 size={15} />}
           title="Heading 3"
         />
-        <Divider />
+        <ToolbarDivider />
 
         {/* Text formatting */}
         <ToolbarButton
@@ -229,7 +233,7 @@ export function Editor({ content, onUpdate, editable = true }: EditorProps) {
           icon={<Code size={15} />}
           title="Inline code"
         />
-        <Divider />
+        <ToolbarDivider />
 
         {/* Lists */}
         <ToolbarButton
@@ -250,7 +254,7 @@ export function Editor({ content, onUpdate, editable = true }: EditorProps) {
           icon={<ListChecks size={15} />}
           title="Checklist"
         />
-        <Divider />
+        <ToolbarDivider />
 
         {/* Alignment */}
         <ToolbarButton
@@ -277,7 +281,7 @@ export function Editor({ content, onUpdate, editable = true }: EditorProps) {
           icon={<AlignJustify size={15} />}
           title="Justify"
         />
-        <Divider />
+        <ToolbarDivider />
 
         {/* Block types */}
         <ToolbarButton
@@ -297,7 +301,7 @@ export function Editor({ content, onUpdate, editable = true }: EditorProps) {
           icon={<Minus size={15} />}
           title="Horizontal rule"
         />
-        <Divider />
+        <ToolbarDivider />
 
         {/* Insert */}
         <ToolbarButton

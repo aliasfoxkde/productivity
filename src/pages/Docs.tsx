@@ -2,8 +2,9 @@ import { useCallback } from 'react'
 import { Editor } from '@/components/editor/Editor'
 
 export function Docs() {
-  const handleUpdate = useCallback((_html: string) => {
+  const handleUpdate = useCallback((html: string) => {
     // TODO: save to document store
+    void html
   }, [])
 
   return (

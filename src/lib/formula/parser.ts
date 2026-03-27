@@ -292,7 +292,7 @@ function evaluate(
   return parseExpression()
 }
 
-function evaluateFunction(name: string, args: CellValue[], _getCell: GetCellValue): CellValue {
+function evaluateFunction(name: string, args: CellValue[]): CellValue {
   const nums = () => args.filter((a): a is number => typeof a === 'number')
   const strs = () => args.map((a) => String(a ?? ''))
 

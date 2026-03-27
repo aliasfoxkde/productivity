@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search } from 'lucide-react'
 import { useUIStore } from '@/stores/ui'
 import { APPS } from '@/lib/constants'
@@ -13,18 +13,22 @@ export function CommandPalette() {
 
   useEffect(() => {
     if (open) {
-      setQuery('')
       inputRef.current?.focus()
     }
   }, [open])
 
+  const handleClose = useCallback(() => {
+    setQuery('')
+    close()
+  }, [close])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) close()
+      if (e.key === 'Escape' && open) handleClose()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [open, close])
+  }, [open, close, handleClose])
 
   if (!open) return null
 
@@ -37,7 +41,7 @@ export function CommandPalette() {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={close} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
 
       {/* Palette */}
       <div className="relative w-full max-w-lg rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] shadow-xl overflow-hidden">

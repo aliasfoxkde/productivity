@@ -181,7 +181,7 @@ export function Spreadsheet() {
         setEditValue(e.key)
       }
     },
-    [editingCell, selectedCell, setCell],
+    [editingCell, selectedCell, setCell, handleStartEdit],
   )
 
   const cellRef = selectedCell ? formatCellRef(selectedCell) : ''

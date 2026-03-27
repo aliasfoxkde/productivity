@@ -13,7 +13,7 @@ const STORES = {
   workspace: 'workspace',
 } as const
 
-type StoreName = (typeof STORES)[keyof typeof STORES]
+export type StoreName = (typeof STORES)[keyof typeof STORES]
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -31,19 +31,6 @@ function openDB(): Promise<IDBDatabase> {
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error)
   })
-}
-
-function getTransaction(storeName: StoreName, mode: IDBTransactionMode = 'readonly'): Promise<IDBTransaction> {
-  return openDB().then(
-    (db) => new Promise((resolve, reject) => {
-      const tx = db.transaction(storeName, mode)
-      tx.oncomplete = () => resolve(tx)
-      tx.onerror = () => reject(tx.error)
-      // Keep transaction alive by preventing auto-commit
-      const store = tx.objectStore(storeName)
-      void store.get('')
-    }),
-  )
 }
 
 // Generic CRUD operations
