@@ -9,9 +9,8 @@ dist-ssr/
 .wrangler/
 .cloudflare/
 
-# Lock files
+# Lock files (pnpm-lock.yaml is committed for Cloudflare Pages build caching)
 package-lock.json
-pnpm-lock.yaml
 bun.lockb
 bun.lock
 yarn.lock
