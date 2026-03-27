@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import '@/styles/ckeditor5.css'
 import { Editor } from '@/components/editor/Editor'
+import { ExportButton } from '@/components/shared/ExportButton'
 import { useDocumentStore } from '@/stores/documents'
 import { debounce } from '@/lib/utils'
+import type { ExportableDocument } from '@/lib/export'
 
 const DOC_KEY = 'suite-default-doc-id'
 
@@ -11,7 +14,6 @@ export function Docs() {
   const documents = useDocumentStore((s) => s.documents)
   const hasInitialized = useRef(false)
 
-  // Find existing document ID from sessionStorage + store
   const existingDocId = useMemo(() => {
     const storedId = sessionStorage.getItem(DOC_KEY)
     if (storedId) {
@@ -21,7 +23,6 @@ export function Docs() {
     return null
   }, [documents])
 
-  // Create document on first render if none exists yet
   useEffect(() => {
     if (hasInitialized.current) return
     hasInitialized.current = true
@@ -31,17 +32,15 @@ export function Docs() {
     }
   }, [existingDocId, createDocument])
 
-  // The active doc ID is either the existing one or the first doc if just created
   const docId = existingDocId ?? documents[documents.length - 1]?.id ?? null
 
-  // Get initial content from the store
-  const initialContent = useMemo(() => {
-    if (!docId) return ''
-    const doc = documents.find((d) => d.id === docId)
-    return doc?.content ?? ''
+  const currentDoc = useMemo(() => {
+    if (!docId) return null
+    return documents.find((d) => d.id === docId) ?? null
   }, [docId, documents])
 
-  // Debounced save handler (stable reference)
+  const initialContent = currentDoc?.content ?? ''
+
   const debouncedSave = useRef(
     debounce((id: string, html: string) => {
       updateDocument(id, { content: html })
@@ -57,15 +56,41 @@ export function Docs() {
     [docId, debouncedSave],
   )
 
+  const handleImport = useCallback(
+    (imported: ExportableDocument) => {
+      const doc = createDocument(imported.type as 'doc', imported.title)
+      updateDocument(doc.id, { content: imported.content })
+    },
+    [createDocument, updateDocument],
+  )
+
+  const exportableDoc: ExportableDocument | null = currentDoc
+    ? {
+        id: currentDoc.id,
+        type: currentDoc.type,
+        title: currentDoc.title,
+        content: currentDoc.content,
+        createdAt: currentDoc.createdAt,
+        updatedAt: currentDoc.updatedAt,
+        tags: currentDoc.tags,
+      }
+    : null
+
+  const { trigger: shareTrigger, dialog: shareDialog } = ExportButton({
+    doc: exportableDoc,
+    onImport: handleImport,
+  })
+
   return (
     <div className="flex flex-col h-full">
-      {/* Document toolbar */}
       <div className="flex items-center gap-2 px-4 h-10 border-b border-[var(--color-border)] bg-[var(--color-bg)]">
         <span className="text-sm font-medium text-[var(--color-text)]">Documents</span>
+        <div className="flex-1" />
+        {shareTrigger}
       </div>
 
-      {/* Editor */}
       <Editor onUpdate={handleUpdate} content={initialContent} />
+      {shareDialog}
     </div>
   )
 }

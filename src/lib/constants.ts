@@ -56,6 +56,15 @@ export const APPS: AppDefinition[] = [
     color: '#ff453a',
     route: '/design',
   },
+  {
+    id: 'notepad',
+    type: 'note',
+    name: 'Notepad',
+    description: 'Code editor with syntax highlighting, multi-language support, and IDE features',
+    icon: 'FileCode',
+    color: '#32d74b',
+    route: '/notepad',
+  },
 ]
 
 /** App registry for quick lookup */

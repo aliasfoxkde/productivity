@@ -13,7 +13,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 1200,
   },
   server: {
     host: '192.168.1.201',

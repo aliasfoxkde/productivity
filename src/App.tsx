@@ -15,6 +15,7 @@ const DiagramsPage = lazy(() => import('@/pages/Diagrams').then(m => ({ default:
 const ProjectsPage = lazy(() => import('@/pages/Projects').then(m => ({ default: m.Projects })))
 const DesignPage = lazy(() => import('@/pages/Design').then(m => ({ default: m.Design })))
 const SettingsPage = lazy(() => import('@/pages/Settings').then(m => ({ default: m.Settings })))
+const NotepadPage = lazy(() => import('@/pages/Notepad').then(m => ({ default: m.Notepad })))
 
 function PageLoader() {
   return (
@@ -98,6 +99,7 @@ export default function App() {
             <Route path="/projects" element={<PageErrorBoundary pageName="Projects"><ProjectsPage /></PageErrorBoundary>} />
             <Route path="/design" element={<PageErrorBoundary pageName="Design"><DesignPage /></PageErrorBoundary>} />
             <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><SettingsPage /></PageErrorBoundary>} />
+            <Route path="/notepad" element={<PageErrorBoundary pageName="Notepad"><NotepadPage /></PageErrorBoundary>} />
           </Routes>
         </Suspense>
       </AppShell>

@@ -1,0 +1,181 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { FileCode, Plus, X, ChevronDown } from 'lucide-react'
+import { CodeEditor } from '@/components/notepad/CodeEditor'
+import { useNotepadStore } from '@/stores/notepad'
+import { AUTOSAVE_DELAY } from '@/lib/constants'
+import { debounce } from '@/lib/utils'
+
+const LANGUAGES = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'typescript', label: 'TypeScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'html', label: 'HTML' },
+  { value: 'css', label: 'CSS' },
+  { value: 'json', label: 'JSON' },
+  { value: 'markdown', label: 'Markdown' },
+  { value: 'plaintext', label: 'Plain Text' },
+  { value: 'sql', label: 'SQL' },
+  { value: 'bash', label: 'Shell' },
+  { value: 'yaml', label: 'YAML' },
+  { value: 'xml', label: 'XML' },
+] as const
+
+export function Notepad() {
+  const files = useNotepadStore((s) => s.files)
+  const activeFileId = useNotepadStore((s) => s.activeFileId)
+  const createFile = useNotepadStore((s) => s.createFile)
+  const updateFile = useNotepadStore((s) => s.updateFile)
+  const deleteFile = useNotepadStore((s) => s.deleteFile)
+  const setActiveFile = useNotepadStore((s) => s.setActiveFile)
+  const setLanguage = useNotepadStore((s) => s.setLanguage)
+  const getActiveFile = useNotepadStore((s) => s.getActiveFile)
+  const hasInitialized = useRef(false)
+  const [cursorInfo, setCursorInfo] = useState('Ln 1, Col 1')
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
+
+  // Create default file on first mount
+  useEffect(() => {
+    if (hasInitialized.current) return
+    hasInitialized.current = true
+    if (files.length === 0) {
+      createFile('untitled.ts', 'typescript')
+    } else if (!activeFileId && files.length > 0) {
+      setActiveFile(files[0].id)
+    }
+  }, [files, activeFileId, createFile, setActiveFile])
+
+  // Debounced save
+  const debouncedSave = useRef(
+    debounce((id: string, content: string) => {
+      updateFile(id, content)
+    }, AUTOSAVE_DELAY),
+  ).current
+
+  const handleChange = useCallback(
+    (value: string) => {
+      if (activeFileId) {
+        debouncedSave(activeFileId, value)
+      }
+    },
+    [activeFileId, debouncedSave],
+  )
+
+  const activeFile = getActiveFile()
+
+  const handleEditorMount = useCallback((editor: Parameters<NonNullable<import('@monaco-editor/react').OnMount>>[0]) => {
+    editor.onDidChangeCursorPosition((e) => {
+      setCursorInfo(`Ln ${e.position.lineNumber}, Col ${e.position.column}`)
+    })
+  }, [])
+
+  const handleDelete = useCallback(
+    (id: string, e: React.MouseEvent) => {
+      e.stopPropagation()
+      deleteFile(id)
+    },
+    [deleteFile],
+  )
+
+  const handleLanguageChange = useCallback(
+    (lang: string) => {
+      if (activeFileId) {
+        setLanguage(activeFileId, lang)
+      }
+      setLangMenuOpen(false)
+    },
+    [activeFileId, setLanguage],
+  )
+
+  const langLabel = LANGUAGES.find((l) => l.value === activeFile?.language)?.label ?? activeFile?.language
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Tab bar */}
+      <div className="flex items-center border-b border-[var(--color-border)] bg-[var(--color-bg)]">
+        <div className="flex items-center overflow-x-auto flex-1 min-w-0">
+          {files.map((file) => (
+            <button
+              key={file.id}
+              onClick={() => setActiveFile(file.id)}
+              className={`
+                flex items-center gap-1.5 px-3 py-2 text-sm border-r border-[var(--color-border)]
+                whitespace-nowrap min-w-0 shrink-0 transition-colors
+                ${file.id === activeFileId
+                  ? 'bg-[var(--color-surface)] text-[var(--color-text)]'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]'
+                }
+              `}
+            >
+              <FileCode size={14} className="shrink-0" />
+              <span className="truncate">{file.name}</span>
+              <span
+                onClick={(e) => handleDelete(file.id, e)}
+                className="ml-1 p-0.5 rounded hover:bg-[var(--color-border)] shrink-0"
+              >
+                <X size={12} />
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* New file button */}
+        <button
+          onClick={() => createFile()}
+          className="flex items-center justify-center w-8 h-8 mx-1 rounded hover:bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors"
+          title="New file"
+        >
+          <Plus size={16} />
+        </button>
+      </div>
+
+      {/* Editor area */}
+      <div className="flex-1 min-h-0">
+        {activeFile ? (
+          <CodeEditor
+            value={activeFile.content}
+            language={activeFile.language}
+            onChange={handleChange}
+            onMount={handleEditorMount}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full text-[var(--color-text-secondary)]">
+            No file open
+          </div>
+        )}
+      </div>
+
+      {/* Status bar */}
+      <div className="flex items-center justify-between px-3 py-1 text-xs border-t border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-secondary)]">
+        <div className="flex items-center gap-3">
+          {/* Language selector */}
+          <div className="relative">
+            <button
+              onClick={() => setLangMenuOpen(!langMenuOpen)}
+              className="flex items-center gap-1 hover:text-[var(--color-text)] transition-colors"
+            >
+              {langLabel}
+              <ChevronDown size={12} />
+            </button>
+            {langMenuOpen && (
+              <div className="absolute bottom-full left-0 mb-1 py-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded shadow-lg z-50 min-w-[140px]">
+                {LANGUAGES.map((lang) => (
+                  <button
+                    key={lang.value}
+                    onClick={() => handleLanguageChange(lang.value)}
+                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-[var(--color-border)] transition-colors ${
+                      lang.value === activeFile?.language ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]'
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <span>{cursorInfo}</span>
+        </div>
+        {activeFile && <span>{activeFile.name}</span>}
+      </div>
+    </div>
+  )
+}
