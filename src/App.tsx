@@ -13,6 +13,7 @@ const SlidesPage = lazy(() => import('@/pages/Slides').then(m => ({ default: m.S
 const DiagramsPage = lazy(() => import('@/pages/Diagrams').then(m => ({ default: m.Diagrams })))
 const ProjectsPage = lazy(() => import('@/pages/Projects').then(m => ({ default: m.Projects })))
 const DesignPage = lazy(() => import('@/pages/Design').then(m => ({ default: m.Design })))
+const SettingsPage = lazy(() => import('@/pages/Settings').then(m => ({ default: m.Settings })))
 
 function PageLoader() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="/diagrams" element={<DiagramsPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/design" element={<DesignPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </Suspense>
       </AppShell>
