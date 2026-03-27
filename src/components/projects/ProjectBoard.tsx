@@ -6,7 +6,7 @@ import {
   List,
   Kanban,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, generateId } from '@/lib/utils'
 
 // Types
 interface Task {
@@ -314,7 +314,7 @@ export function ProjectBoard() {
 
   const addTask = useCallback((columnId: string) => {
     const newTask: Task = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       title: 'New task',
       description: '',
       status: columnId,

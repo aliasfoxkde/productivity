@@ -7,7 +7,7 @@ import {
   Maximize2,
   Palette,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, generateId } from '@/lib/utils'
 
 interface SlideContent {
   id: string
@@ -96,7 +96,7 @@ const LAYOUTS: Record<string, (theme: typeof THEMES.blue) => SlideContent[]> = {
 function createSlide(layout: string, themeKey: string = 'blue'): Slide {
   const theme = THEMES[themeKey as keyof typeof THEMES]
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     background: theme.bg,
     content: LAYOUTS[layout]?.(theme) ?? [],
   }

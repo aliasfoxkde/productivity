@@ -15,7 +15,7 @@ import {
   Star,
   Triangle,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, generateId } from '@/lib/utils'
 
 // Types
 interface DesignElement {
@@ -46,7 +46,7 @@ const CANVAS_H = 600
 
 function createDefaultElement(type: Tool, x: number, y: number): DesignElement {
   const base: Omit<DesignElement, 'width' | 'height' | 'type'> = {
-    id: crypto.randomUUID(),
+    id: generateId(),
     x, y,
     fill: 'transparent',
     stroke: '#1a1a2e',
