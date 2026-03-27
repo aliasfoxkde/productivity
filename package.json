@@ -14,7 +14,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "pages:build": "vite build",
-    "pages:deploy": "npx wrangler pages deploy dist --project-name=productivity"
+    "pages:deploy": "CLOUDFLARE_API_TOKEN=$CLOUDFLARE_BUILD_TOKEN npx wrangler pages deploy dist --project-name=productivity"
   },
   "dependencies": {
     "@tiptap/extension-code-block-lowlight": "^3.20.6",
