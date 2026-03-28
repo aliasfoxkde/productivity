@@ -105,6 +105,8 @@ export interface ThemeTokens {
 export interface ThemePreference {
   preset: ThemePresetId | 'system'
   overrides: Partial<Record<ThemePresetId, Partial<ThemeTokens>>>
+  /** Persisted mode override when user explicitly toggles light/dark */
+  _modeOverride?: 'light' | 'dark'
 }
 
 /** Resolved theme at runtime */

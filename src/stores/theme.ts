@@ -9,7 +9,15 @@ const LS_MODE_KEY = 'theme-mode'
 function loadPreference(): ThemePreference {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as ThemePreference
+    if (raw) {
+      const pref = JSON.parse(raw) as ThemePreference
+      // Restore persisted mode override
+      const savedMode = localStorage.getItem(LS_MODE_KEY) as 'light' | 'dark' | null
+      if (savedMode) {
+        pref._modeOverride = savedMode
+      }
+      return pref
+    }
   } catch { /* ignore */ }
   return { preset: 'system', overrides: {} }
 }
@@ -22,7 +30,8 @@ function getSystemMode(): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-function resolveMode(preset: ThemePresetId | 'system'): 'light' | 'dark' {
+function resolveMode(preset: ThemePresetId | 'system', modeOverride?: 'light' | 'dark'): 'light' | 'dark' {
+  if (modeOverride) return modeOverride
   if (preset === 'system') return getSystemMode()
   // Default to dark for all presets
   return 'dark'
@@ -58,11 +67,12 @@ interface ThemeState {
   updateTokens: (tokens: Partial<ThemeTokens>) => void
   resetPreset: () => void
   toggleMode: () => void
+  setMode: (mode: 'light' | 'dark') => void
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => {
   const preference = loadPreference()
-  const mode = resolveMode(preference.preset)
+  const mode = resolveMode(preference.preset, preference._modeOverride)
   const tokens = resolveTokens(preference.preset, mode, preference.overrides)
   const presetId = preference.preset === 'system' ? 'modern-saas' : preference.preset
   const resolved: ResolvedTheme = { presetId, mode, tokens }
@@ -75,7 +85,8 @@ export const useThemeStore = create<ThemeState>((set, get) => {
     resolved,
 
     setPreset: (preset) => {
-      const mode = resolveMode(preset)
+      const { _modeOverride } = get().preference
+      const mode = resolveMode(preset, _modeOverride)
       const tokens = resolveTokens(preset, mode, get().preference.overrides)
       const presetId = preset === 'system' ? 'modern-saas' : preset
       const newPref = { ...get().preference, preset }
@@ -97,7 +108,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
         },
       }
       const newPref = { ...preference, overrides: newOverrides }
-      const mode = resolveMode(newPref.preset)
+      const mode = resolveMode(newPref.preset, newPref._modeOverride)
       const tokens = resolveTokens(newPref.preset, mode, newOverrides)
       const newResolved: ResolvedTheme = { presetId: currentPresetId, mode, tokens }
       savePreference(newPref)
@@ -111,7 +122,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
       const { [currentPresetId]: _removed, ...remainingOverrides } = preference.overrides
       void _removed
       const newPref = { ...preference, overrides: remainingOverrides }
-      const mode = resolveMode(newPref.preset)
+      const mode = resolveMode(newPref.preset, newPref._modeOverride)
       const tokens = resolveTokens(newPref.preset, mode, newPref.overrides)
       const newResolved: ResolvedTheme = { presetId: currentPresetId, mode, tokens }
       savePreference(newPref)
@@ -120,15 +131,29 @@ export const useThemeStore = create<ThemeState>((set, get) => {
     },
 
     toggleMode: () => {
-      const { resolved } = get()
+      const { resolved, preference } = get()
       const newMode = resolved.mode === 'dark' ? 'light' : 'dark'
-      const { preference } = get()
       const currentPresetId = (preference.preset === 'system' ? 'modern-saas' : preference.preset) as ThemePresetId
       const tokens = resolveTokens(currentPresetId, newMode, preference.overrides)
       const newResolved: ResolvedTheme = { ...resolved, mode: newMode, tokens }
+      const newPref = { ...preference, _modeOverride: newMode }
+      savePreference(newPref)
       saveModeForFlash(newMode)
       applyThemeToDOM(newResolved)
-      set({ resolved: newResolved })
+      set({ preference: newPref, resolved: newResolved })
+    },
+
+    setMode: (mode) => {
+      const { resolved, preference } = get()
+      if (resolved.mode === mode) return
+      const currentPresetId = (preference.preset === 'system' ? 'modern-saas' : preference.preset) as ThemePresetId
+      const tokens = resolveTokens(currentPresetId, mode, preference.overrides)
+      const newResolved: ResolvedTheme = { ...resolved, mode, tokens }
+      const newPref = { ...preference, _modeOverride: mode }
+      savePreference(newPref)
+      saveModeForFlash(mode)
+      applyThemeToDOM(newResolved)
+      set({ preference: newPref, resolved: newResolved })
     },
   }
 })

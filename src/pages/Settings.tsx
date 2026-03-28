@@ -42,6 +42,7 @@ export function Settings() {
   const preference = useThemeStore((s) => s.preference)
   const resolved = useThemeStore((s) => s.resolved)
   const setPreset = useThemeStore((s) => s.setPreset)
+  const setMode = useThemeStore((s) => s.setMode)
   const resetPreset = useThemeStore((s) => s.resetPreset)
   const updateTokens = useThemeStore((s) => s.updateTokens)
   const [activeSection, setActiveSection] = useState<string>('appearance')
@@ -240,10 +241,7 @@ export function Settings() {
               <h3 className="text-sm font-medium text-[var(--color-text)] mb-3">Mode</h3>
               <div className="flex gap-3">
                 <button
-                  onClick={() => {
-                    const { toggleMode } = useThemeStore.getState()
-                    toggleMode()
-                  }}
+                  onClick={() => setMode('dark')}
                   className={cn(
                     'flex items-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-colors',
                     resolved.mode === 'dark'
@@ -255,10 +253,7 @@ export function Settings() {
                   <span className="text-xs font-medium text-[var(--color-text)]">Dark</span>
                 </button>
                 <button
-                  onClick={() => {
-                    const { toggleMode } = useThemeStore.getState()
-                    toggleMode()
-                  }}
+                  onClick={() => setMode('light')}
                   className={cn(
                     'flex items-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-colors',
                     resolved.mode === 'light'

@@ -10,6 +10,7 @@ import {
   Layers,
   Terminal,
   ChevronDown,
+  X,
 } from 'lucide-react'
 import { useUIStore } from '@/stores/ui'
 import { useThemeStore } from '@/stores/theme'
@@ -59,14 +60,14 @@ export function TopBar() {
       {/* Sidebar toggle */}
       <button
         onClick={toggleSidebar}
-        className="p-2 rounded-lg hover:bg-[var(--color-bg-hover)] text-[var(--color-secondary)] cursor-pointer"
+        className="p-2 rounded-lg hover:bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] cursor-pointer"
         aria-label="Toggle sidebar"
       >
         <PanelLeft size={16} />
       </button>
 
       {/* Tabs */}
-      <div className="flex items-center gap-0.5 flex-1 overflow-x-auto min-w-0 mx-1">
+      <div className="flex items-center gap-0.5 flex-1 overflow-x-auto min-w-0 mx-1" role="tablist">
         {tabs.length === 0 && (
           <span className="text-xs text-[var(--color-text-tertiary)] px-2">
             No open documents
@@ -75,6 +76,8 @@ export function TopBar() {
         {tabs.map((tab) => (
           <div
             key={tab.documentId}
+            role="tab"
+            aria-selected={tab.isActive}
             onClick={() => setActiveTab(tab.documentId)}
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-colors shrink-0 max-w-[180px]',
@@ -90,9 +93,10 @@ export function TopBar() {
                 e.stopPropagation()
                 closeTab(tab.documentId)
               }}
+              aria-label={`Close ${tab.title}`}
               className="p-0.5 rounded hover:bg-[var(--color-bg-active)] text-[var(--color-text-tertiary)] cursor-pointer"
             >
-              ×
+              <X size={12} />
             </button>
           </div>
         ))}
@@ -164,7 +168,7 @@ export function TopBar() {
               {/* Light/Dark toggle */}
               <button
                 onClick={() => {
-                  useThemeStore.getState().toggleMode()
+                  useThemeStore.getState().setMode(resolved.mode === 'dark' ? 'light' : 'dark')
                   setThemeMenuOpen(false)
                 }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-sm cursor-pointer transition-colors text-left text-[var(--color-text)] hover:bg-[var(--color-bg-hover)]"

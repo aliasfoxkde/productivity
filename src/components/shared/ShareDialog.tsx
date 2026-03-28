@@ -26,6 +26,7 @@ interface ShareDialogProps {
 
 export function ShareDialog({ open, onClose, doc, onImport }: ShareDialogProps) {
   const [copied, setCopied] = useState(false)
+  const [importError, setImportError] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleCopyLink = useCallback(async () => {
@@ -49,15 +50,18 @@ export function ShareDialog({ open, onClose, doc, onImport }: ShareDialogProps) 
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
       if (!file) return
+      setImportError(false)
       try {
         const text = await readTextFile(file)
         const imported = importFromJSON(text)
         if (imported) {
           onImport?.(imported)
           onClose()
+        } else {
+          setImportError(true)
         }
       } catch {
-        // invalid file -- silently ignore
+        setImportError(true)
       }
       // reset so the same file can be re-selected
       e.target.value = ''
@@ -68,7 +72,7 @@ export function ShareDialog({ open, onClose, doc, onImport }: ShareDialogProps) 
   if (!open || !doc) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Share document">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40"
@@ -95,6 +99,7 @@ export function ShareDialog({ open, onClose, doc, onImport }: ShareDialogProps) 
           <button
             onClick={onClose}
             className="p-1 rounded-md text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] cursor-pointer"
+            aria-label="Close dialog"
           >
             <X size={16} />
           </button>
@@ -140,6 +145,12 @@ export function ShareDialog({ open, onClose, doc, onImport }: ShareDialogProps) 
             <Upload size={16} className="shrink-0" />
             Import
           </button>
+
+          {importError && (
+            <div className="text-xs text-[var(--color-error)] px-1">
+              Invalid file. Please select a valid JSON document.
+            </div>
+          )}
         </div>
 
         {/* Hidden file input */}

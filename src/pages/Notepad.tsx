@@ -88,6 +88,19 @@ export function Notepad() {
 
   const langLabel = LANGUAGES.find((l) => l.value === activeFile?.language)?.label ?? activeFile?.language
 
+  // Close language menu on outside click
+  const langMenuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!langMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
+        setLangMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [langMenuOpen])
+
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
@@ -148,7 +161,7 @@ export function Notepad() {
       <div className="flex items-center justify-between px-3 py-1 text-xs border-t border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-secondary)]">
         <div className="flex items-center gap-3">
           {/* Language selector */}
-          <div className="relative">
+          <div className="relative" ref={langMenuRef}>
             <button
               onClick={() => setLangMenuOpen(!langMenuOpen)}
               className="flex items-center gap-1 hover:text-[var(--color-text)] transition-colors"

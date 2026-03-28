@@ -86,6 +86,17 @@ export function exportToHTML(doc: ExportableDocument): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHTML(doc.title)}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1d1d1f; line-height: 1.6; }
+    h1, h2, h3 { margin-top: 1.5em; }
+    img { max-width: 100%; height: auto; }
+    blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1em; color: #666; }
+    code { background: #f5f5f7; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    pre { background: #f5f5f7; padding: 16px; border-radius: 8px; overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #d2d2d7; padding: 8px 12px; text-align: left; }
+    th { background: #f5f5f7; }
+  </style>
 </head>
 <body>
 ${doc.content}
@@ -100,6 +111,7 @@ function escapeHTML(str: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 /**
@@ -172,14 +184,9 @@ function colToIndex(col: string): number {
 // File reading
 // ---------------------------------------------------------------------------
 
-/** Read a `File` as plain text via `FileReader`. */
+/** Read a `File` as plain text. */
 export function readTextFile(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(reader.error)
-    reader.readAsText(file)
-  })
+  return file.text()
 }
 
 // ---------------------------------------------------------------------------

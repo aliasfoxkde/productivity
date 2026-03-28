@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { lazy, Suspense, useEffect, Component } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef, Component } from 'react'
 import type { ReactNode, ErrorInfo } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Home } from '@/pages/Home'
@@ -20,7 +20,10 @@ const NotepadPage = lazy(() => import('@/pages/Notepad').then(m => ({ default: m
 function PageLoader() {
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="text-sm text-[var(--color-text-tertiary)]">Loading...</div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-5 h-5 border-2 border-[var(--color-border)] border-t-[var(--color-accent)] rounded-full animate-spin" />
+        <div className="text-xs text-[var(--color-text-tertiary)]">Loading...</div>
+      </div>
     </div>
   )
 }
@@ -77,9 +80,14 @@ function AppInit() {
   useKeyboardShortcuts()
 
   const createWorkspace = useDocumentStore((s) => s.createWorkspace)
+  const workspaces = useDocumentStore((s) => s.workspaces)
+  const initialized = useRef(false)
+
   useEffect(() => {
+    if (initialized.current || workspaces.length > 0) return
+    initialized.current = true
     createWorkspace()
-  }, [createWorkspace])
+  }, [createWorkspace, workspaces.length])
 
   return null
 }
@@ -100,6 +108,7 @@ export default function App() {
             <Route path="/design" element={<PageErrorBoundary pageName="Design"><DesignPage /></PageErrorBoundary>} />
             <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><SettingsPage /></PageErrorBoundary>} />
             <Route path="/notepad" element={<PageErrorBoundary pageName="Notepad"><NotepadPage /></PageErrorBoundary>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
       </AppShell>
