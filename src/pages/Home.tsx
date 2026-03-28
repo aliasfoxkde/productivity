@@ -84,7 +84,17 @@ export function Home() {
               return (
                 <button
                   key={doc.id}
-                  onClick={() => app && navigate(app.route)}
+                  onClick={() => {
+                    if (!app) return
+                    // Pass doc ID as search param so the target page loads it
+                    if (doc.type === 'doc') {
+                      navigate(`${app.route}?doc=${doc.id}`)
+                    } else if (doc.type === 'note') {
+                      navigate(`${app.route}?file=${doc.id}`)
+                    } else {
+                      navigate(app.route)
+                    }
+                  }}
                   className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-left hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer"
                 >
                   <div

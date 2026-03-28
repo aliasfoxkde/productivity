@@ -4,14 +4,22 @@ import { useSpreadsheetStore } from '@/stores/spreadsheet'
 import { cn } from '@/lib/utils'
 import { formatCellRef } from '@/lib/formula/parser'
 
-const COLS = 26
+const COLS = 26 * 3 // 78 columns (A through BZ)
 const ROWS = 100
 const COL_WIDTH = 100
 const ROW_HEIGHT = 28
 const HEADER_HEIGHT = 28
 
 function colLabel(index: number): string {
-  return String.fromCharCode(65 + index)
+  // Multi-letter column labels: 0=A, 25=Z, 26=AA, 27=AB, ...
+  let result = ''
+  let n = index + 1
+  while (n > 0) {
+    n--
+    result = String.fromCharCode(65 + (n % 26)) + result
+    n = Math.floor(n / 26)
+  }
+  return result
 }
 
 const SpreadsheetCellComponent = memo(function SpreadsheetCellComponent({
@@ -76,7 +84,7 @@ const SpreadsheetCellComponent = memo(function SpreadsheetCellComponent({
       className={cn(
         'absolute border-r border-b border-[var(--color-border)] cursor-cell',
         isSelected && 'ring-2 ring-inset ring-[var(--color-accent)] z-10',
-        isError && 'bg-red-50 dark:bg-red-950/20',
+        isError && 'bg-[var(--color-error)]/10',
       )}
       style={{
         left: col * COL_WIDTH,

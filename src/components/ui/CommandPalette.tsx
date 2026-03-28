@@ -51,18 +51,29 @@ export function CommandPalette() {
 
     const docResults = q
       ? documents
-          .filter((d) => d.title.toLowerCase().includes(q) || d.tags.some((t) => t.toLowerCase().includes(q)))
+          .filter((d) =>
+            d.title.toLowerCase().includes(q) ||
+            d.tags.some((t) => t.toLowerCase().includes(q)) ||
+            d.content.toLowerCase().includes(q),
+          )
           .slice(0, 5)
           .map((d) => {
             const app = d.type === 'doc' ? APP_MAP.get('docs')
               : d.type === 'sheet' ? APP_MAP.get('sheets')
               : d.type === 'note' ? APP_MAP.get('notepad')
               : null
+            // Show content snippet if query matched content but not title
+            const titleMatch = d.title.toLowerCase().includes(q)
+            const snippet = !titleMatch && d.content
+              ? d.content.replace(/<[^>]+>/g, '').slice(0, 60).trim()
+              : undefined
             return {
               id: d.id,
               name: d.title,
-              description: `Document · ${app?.name ?? d.type}`,
-              route: app?.route ?? '/docs',
+              description: snippet
+                ? `...${snippet}...`
+                : `Document · ${app?.name ?? d.type}`,
+              route: d.type === 'doc' ? `${app?.route ?? '/docs'}?doc=${d.id}` : app?.route ?? '/docs',
               color: app?.color ?? '#666',
               char: app?.name.charAt(0) ?? '?',
             }

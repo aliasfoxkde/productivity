@@ -21,6 +21,23 @@ export function useKeyboardShortcuts() {
         e.preventDefault()
         toggleSidebar()
       }
+
+      // Cmd/Ctrl+S — Save (dispatch custom event for pages to handle)
+      if (mod && e.key === 's') {
+        e.preventDefault()
+        window.dispatchEvent(new CustomEvent('app:save'))
+      }
+
+      // Escape — Close modals/dialogs (dispatch custom event)
+      if (e.key === 'Escape') {
+        window.dispatchEvent(new CustomEvent('app:escape'))
+      }
+
+      // Cmd/Ctrl+N — New document (dispatch custom event)
+      if (mod && e.key === 'n') {
+        e.preventDefault()
+        window.dispatchEvent(new CustomEvent('app:new'))
+      }
     }
 
     window.addEventListener('keydown', handler)

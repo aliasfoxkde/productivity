@@ -101,13 +101,29 @@ function tokenize(formula: string): Token[] {
     if (c === ',') { tokens.push({ type: 'COMMA', value: ',' }); i++; continue }
     if (c === ':') { tokens.push({ type: 'COLON', value: ':' }); i++; continue }
 
-    // Cell reference (e.g., A1, B2, AA100)
+    // Cell reference (e.g., A1, B2, AA100) — possibly followed by : to form a RANGE
     if (/[A-Za-z]/.test(c) && i + 1 < s.length && /[0-9]/.test(s[i + 1])) {
       let ref = ''
       while (i < s.length && /[A-Za-z0-9]/.test(s[i])) { ref += s[i]; i++ }
       const parsed = parseCellRef(ref)
       if (parsed) {
-        tokens.push({ type: 'CELL_REF', value: ref.toUpperCase() })
+        const upperRef = ref.toUpperCase()
+        // Check for range pattern: CELL_REF : CELL_REF
+        let j = i
+        while (j < s.length && (s[j] === ' ' || s[j] === '\t')) j++
+        if (j < s.length && s[j] === ':') {
+          j++ // skip colon
+          while (j < s.length && (s[j] === ' ' || s[j] === '\t')) j++
+          // Parse second cell ref
+          let ref2 = ''
+          while (j < s.length && /[A-Za-z0-9]/.test(s[j])) { ref2 += s[j]; j++ }
+          if (ref2 && parseCellRef(ref2)) {
+            tokens.push({ type: 'RANGE', value: `${upperRef}:${ref2.toUpperCase()}` })
+            i = j
+            continue
+          }
+        }
+        tokens.push({ type: 'CELL_REF', value: upperRef })
       } else if (FUNCTIONS.has(ref.toUpperCase())) {
         tokens.push({ type: 'FUNCTION', value: ref.toUpperCase() })
       } else {
@@ -175,6 +191,28 @@ function evaluate(
       return ref ? getCell(ref) : null
     }
 
+    // Range reference (e.g., A1:B3) — only valid inside function arguments
+    if (tok.type === 'RANGE') {
+      consume()
+      const parts = tok.value.split(':')
+      const start = parseCellRef(parts[0])
+      const end = parseCellRef(parts[1])
+      if (!start || !end) return null
+      // Expand range to array of cell values
+      const values: CellValue[] = []
+      const minCol = Math.min(start.col, end.col)
+      const maxCol = Math.max(start.col, end.col)
+      const minRow = Math.min(start.row, end.row)
+      const maxRow = Math.max(start.row, end.row)
+      for (let r = minRow; r <= maxRow; r++) {
+        for (let c = minCol; c <= maxCol; c++) {
+          values.push(getCell({ col: c, row: r }))
+        }
+      }
+      // Return as a boxed range so functions can detect it
+      return { __range: true, values } as unknown as CellValue
+    }
+
     // Parenthesized expression
     if (tok.type === 'LPAREN') {
       consume()
@@ -202,7 +240,7 @@ function evaluate(
       if (peek().type !== 'RPAREN') throw new Error(`Expected ) after ${name} arguments`)
       consume()
 
-      return evaluateFunction(name, args, getCell)
+      return evaluateFunction(name, args)
     }
 
     // Unary minus
@@ -292,9 +330,26 @@ function evaluate(
   return parseExpression()
 }
 
+/** Detect if a CellValue is a boxed range from range expansion */
+function isRangeValue(v: CellValue): v is { __range: true; values: CellValue[] } {
+  return v !== null && typeof v === 'object' && '__range' in v
+}
+
+/** Flatten args — expand any boxed ranges into their constituent cell values */
+function flattenArgs(args: CellValue[]): CellValue[] {
+  const flat: CellValue[] = []
+  for (const a of args) {
+    if (isRangeValue(a)) flat.push(...a.values)
+    else flat.push(a)
+  }
+  return flat
+}
+
 function evaluateFunction(name: string, args: CellValue[]): CellValue {
-  const nums = () => args.filter((a): a is number => typeof a === 'number')
-  const strs = () => args.map((a) => String(a ?? ''))
+  // Flatten ranges so aggregate functions see individual cell values
+  const flat = flattenArgs(args)
+  const nums = () => flat.filter((a): a is number => typeof a === 'number')
+  const strs = () => flat.map((a) => String(a ?? ''))
 
   switch (name) {
     // Aggregate
@@ -345,6 +400,7 @@ function evaluateFunction(name: string, args: CellValue[]): CellValue {
 
     // Type checks
     case 'ISBLANK': return args[0] === null || args[0] === '' || args[0] === undefined
+    case 'ISERROR': return false // formulas return { value, error } — the error field is checked by the caller
     case 'ISNUMBER': return typeof args[0] === 'number'
     case 'ISTEXT': return typeof args[0] === 'string'
 

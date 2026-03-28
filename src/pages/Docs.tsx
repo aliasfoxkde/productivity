@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import '@/styles/ckeditor5.css'
 import { Editor } from '@/components/editor/Editor'
 import { ExportButton } from '@/components/shared/ExportButton'
@@ -13,15 +14,24 @@ export function Docs() {
   const updateDocument = useDocumentStore((s) => s.updateDocument)
   const documents = useDocumentStore((s) => s.documents)
   const hasInitialized = useRef(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Check for ?doc= param (set by Home page recent docs)
+  const urlDocId = searchParams.get('doc')
 
   const existingDocId = useMemo(() => {
+    // Priority: URL param > sessionStorage
+    if (urlDocId) {
+      const exists = documents.find((d) => d.id === urlDocId)
+      if (exists) return urlDocId
+    }
     const storedId = sessionStorage.getItem(DOC_KEY)
     if (storedId) {
       const exists = documents.find((d) => d.id === storedId)
       if (exists) return storedId
     }
     return null
-  }, [documents])
+  }, [documents, urlDocId])
 
   useEffect(() => {
     if (hasInitialized.current) return
@@ -29,8 +39,12 @@ export function Docs() {
     if (!existingDocId) {
       const doc = createDocument('doc', 'Untitled Document')
       sessionStorage.setItem(DOC_KEY, doc.id)
+    } else if (urlDocId) {
+      // URL doc exists — persist it and clean up URL
+      sessionStorage.setItem(DOC_KEY, urlDocId)
+      setSearchParams({}, { replace: true })
     }
-  }, [existingDocId, createDocument])
+  }, [existingDocId, createDocument, urlDocId, setSearchParams])
 
   const docId = existingDocId ?? documents[documents.length - 1]?.id ?? null
 

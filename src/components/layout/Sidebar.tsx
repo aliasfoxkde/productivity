@@ -15,10 +15,27 @@ export function Sidebar() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const toggleCommandPalette = useUIStore((s) => s.toggleCommandPalette)
 
+  const handleNav = (route: string) => {
+    navigate(route)
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth < 768) {
+      toggleSidebar()
+    }
+  }
+
   if (!sidebarOpen) return null
 
   return (
-    <aside className="flex flex-col h-full bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] select-none glass-panel" role="navigation" aria-label="Main navigation">
+    <>
+      {/* Mobile overlay */}
+      <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={toggleSidebar} />
+      <aside
+        className={cn(
+          'fixed md:relative z-40 flex flex-col h-full bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] select-none glass-panel w-[260px] md:w-auto',
+        )}
+        role="navigation"
+        aria-label="Main navigation"
+      >
       {/* Header */}
       <div className="flex items-center justify-between px-3 h-12 border-b border-[var(--color-border)]">
         <span className="text-sm font-semibold text-[var(--color-text)] tracking-tight">
@@ -58,7 +75,7 @@ export function Sidebar() {
           return (
             <button
               key={app.id}
-              onClick={() => navigate(app.route)}
+              onClick={() => handleNav(app.route)}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer',
@@ -82,7 +99,7 @@ export function Sidebar() {
       {/* Footer */}
       <div className="px-2 py-2 border-t border-[var(--color-border)]">
         <button
-          onClick={() => navigate('/settings')}
+          onClick={() => handleNav('/settings')}
           aria-current={location.pathname === '/settings' ? 'page' : undefined}
           className={cn(
             'flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer',
@@ -96,5 +113,6 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   )
 }

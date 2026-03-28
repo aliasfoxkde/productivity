@@ -165,3 +165,21 @@ a, button {
 .react-flow__attribution {
   background: transparent !important;
 }
+
+/* Print styles */
+@media print {
+  aside, header, [role="navigation"], [role="tablist"], .command-palette {
+    display: none !important;
+  }
+  html, body, #root {
+    overflow: visible;
+    height: auto;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .ck-editor-content {
+    max-width: 100% !important;
+  }
+}

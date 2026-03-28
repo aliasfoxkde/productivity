@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Maximize2,
   Palette,
+  Download,
 } from 'lucide-react'
 import { cn, generateId } from '@/lib/utils'
 
@@ -264,6 +265,27 @@ export function SlideEditor() {
         </button>
         <button onClick={() => setIsPresenting(true)} className="flex items-center gap-1 px-2 py-1 rounded-md text-xs hover:bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] cursor-pointer" title="Present">
           <Maximize2 size={14} /> Present
+        </button>
+        <button onClick={() => {
+          const theme = THEMES[themeKey as keyof typeof THEMES]
+          const slideHTML = slides.map((s) => {
+            const contentHTML = s.content.map((c) => {
+              const style = Object.entries(c.style).map(([k, v]) => `${k.replace(/([A-Z])/g, '-$1').toLowerCase()}:${v}`).join(';')
+              if (c.type === 'title' || c.type === 'text') {
+                return `<div style="position:absolute;left:${c.x}%;top:${c.y}%;width:${c.width}%;height:${c.height}%;${style}">${c.content}</div>`
+              }
+              return ''
+            }).join('\n')
+            return `<section style="position:relative;width:960px;height:540px;background:${s.background};margin:0 auto 40px;overflow:hidden;border-radius:8px;">${contentHTML}</section>`
+          }).join('\n')
+          const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Presentation</title><style>body{margin:40px auto;max-width:960px;font-family:sans-serif;background:#f0f0f0}section{box-shadow:0 4px 12px rgba(0,0,0,0.15)}</style></head><body>${slideHTML}</body></html>`
+          const blob = new Blob([html], { type: 'text/html' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url; a.download = 'presentation.html'; a.click()
+          a.remove(); URL.revokeObjectURL(url)
+        }} className="flex items-center gap-1 px-2 py-1 rounded-md text-xs hover:bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] cursor-pointer" title="Export as HTML">
+          <Download size={14} /> Export
         </button>
 
         <div className="w-px h-5 bg-[var(--color-border)] mx-1" />

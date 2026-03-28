@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   Plus,
   Search,
@@ -303,6 +303,15 @@ export function ProjectBoard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [filterPriority, setFilterPriority] = useState<string>('all')
+
+  // Escape key: close task detail panel
+  useEffect(() => {
+    const handler = () => {
+      if (selectedTaskId) setSelectedTaskId(null)
+    }
+    window.addEventListener('app:escape', handler)
+    return () => window.removeEventListener('app:escape', handler)
+  }, [selectedTaskId])
 
   const filteredTasks = tasks.filter((t) => {
     if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase()) && !t.tags.some((tag) => tag.includes(searchQuery.toLowerCase()))) return false

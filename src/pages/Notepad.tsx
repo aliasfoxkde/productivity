@@ -143,6 +143,17 @@ export function Notepad() {
     }
   }, [renamingId])
 
+  // Escape key: close dialogs
+  useEffect(() => {
+    const handler = () => {
+      if (confirmDeleteId) setConfirmDeleteId(null)
+      if (renamingId) setRenamingId(null)
+      if (langMenuOpen) setLangMenuOpen(false)
+    }
+    window.addEventListener('app:escape', handler)
+    return () => window.removeEventListener('app:escape', handler)
+  }, [confirmDeleteId, renamingId, langMenuOpen])
+
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}

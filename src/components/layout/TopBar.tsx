@@ -50,6 +50,14 @@ export function TopBar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [themeMenuOpen])
 
+  // Close theme menu on Escape
+  useEffect(() => {
+    if (!themeMenuOpen) return
+    const handler = () => setThemeMenuOpen(false)
+    window.addEventListener('app:escape', handler)
+    return () => window.removeEventListener('app:escape', handler)
+  }, [themeMenuOpen])
+
   const themeIcon =
     preference.preset === 'system'
       ? <Monitor size={14} />
