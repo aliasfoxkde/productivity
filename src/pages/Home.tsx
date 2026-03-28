@@ -51,7 +51,7 @@ export function Home() {
               key={app.id}
               onClick={() => handleOpenApp(app.type, app.route)}
               disabled={isActive}
-              className="group flex flex-col items-center gap-3 p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] hover:bg-[var(--color-bg-secondary)] hover:border-[var(--color-accent)] transition-all cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-default"
+              className="group flex flex-col items-center gap-3 p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] hover:bg-[var(--color-bg-secondary)] hover:border-[var(--color-accent)] hover:-translate-y-0.5 transition-all cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-default disabled:hover:translate-y-0"
             >
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold transition-transform group-hover:scale-110"

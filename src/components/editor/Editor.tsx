@@ -1,5 +1,6 @@
-import { useCallback } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 import { CKEditor, type EventInfo, type Editor } from '@ckeditor/ckeditor5-react'
+import { useThemeStore } from '@/stores/theme'
 import {
   ClassicEditor,
   Essentials,
@@ -37,29 +38,42 @@ interface EditorProps {
 }
 
 export function Editor({ content, onUpdate, editable = true }: EditorProps) {
+  const editorRef = useRef<Editor | null>(null)
+  const mode = useThemeStore((s) => s.resolved.mode)
+
+  const applyThemeVars = useCallback((editor: Editor) => {
+    const element = editor.ui.element as HTMLElement
+    element.style.setProperty('--ck-color-base-text', 'var(--color-text)')
+    element.style.setProperty('--ck-color-base-background', 'var(--color-bg)')
+    element.style.setProperty('--ck-color-border', 'var(--color-border)')
+    element.style.setProperty('--ck-color-text', 'var(--color-text)')
+    element.style.setProperty('--ck-color-toolbar-background', 'var(--color-bg)')
+    element.style.setProperty('--ck-color-toolbar-border', 'var(--color-border)')
+    element.style.setProperty('--ck-color-button-default-background', 'var(--color-bg)')
+    element.style.setProperty('--ck-color-button-default-hover-background', 'var(--color-bg-hover)')
+    element.style.setProperty('--ck-color-button-on-background', 'var(--color-accent)')
+    element.style.setProperty('--ck-color-button-on-color', 'var(--color-accent)')
+    element.style.setProperty('--ck-color-focus-border', 'var(--color-accent)')
+    element.style.setProperty('--ck-color-text-placeholder', 'var(--color-text-tertiary)')
+    element.style.setProperty('--ck-color-panel-background', 'var(--color-bg-secondary)')
+    element.style.setProperty('--ck-color-input-background', 'var(--color-bg)')
+    element.style.setProperty('--ck-color-input-border', 'var(--color-border)')
+    element.style.setProperty('--ck-color-input-text', 'var(--color-text)')
+    element.style.setProperty('--ck-color-dropdown-panel-background', 'var(--color-bg-secondary)')
+  }, [])
+
   const handleEditorReady = useCallback(
     (editor: Editor) => {
-      const element = editor.ui.element as HTMLElement
-      element.style.setProperty('--ck-color-base-text', 'var(--color-text)')
-      element.style.setProperty('--ck-color-base-background', 'var(--color-bg)')
-      element.style.setProperty('--ck-color-border', 'var(--color-border)')
-      element.style.setProperty('--ck-color-text', 'var(--color-text)')
-      element.style.setProperty('--ck-color-toolbar-background', 'var(--color-bg)')
-      element.style.setProperty('--ck-color-toolbar-border', 'var(--color-border)')
-      element.style.setProperty('--ck-color-button-default-background', 'var(--color-bg)')
-      element.style.setProperty('--ck-color-button-default-hover-background', 'var(--color-bg-hover)')
-      element.style.setProperty('--ck-color-button-on-background', 'var(--color-accent)')
-      element.style.setProperty('--ck-color-button-on-color', 'var(--color-accent)')
-      element.style.setProperty('--ck-color-focus-border', 'var(--color-accent)')
-      element.style.setProperty('--ck-color-text-placeholder', 'var(--color-text-tertiary)')
-      element.style.setProperty('--ck-color-panel-background', 'var(--color-bg-secondary)')
-      element.style.setProperty('--ck-color-input-background', 'var(--color-bg)')
-      element.style.setProperty('--ck-color-input-border', 'var(--color-border)')
-      element.style.setProperty('--ck-color-input-text', 'var(--color-text)')
-      element.style.setProperty('--ck-color-dropdown-panel-background', 'var(--color-bg-secondary)')
+      editorRef.current = editor
+      applyThemeVars(editor)
     },
-    [],
+    [applyThemeVars],
   )
+
+  // Re-apply CKEditor theme variables when mode changes
+  useEffect(() => {
+    if (editorRef.current) applyThemeVars(editorRef.current)
+  }, [mode, applyThemeVars])
 
   const handleChange = useCallback(
     (_event: EventInfo, editor: Editor) => {

@@ -56,7 +56,7 @@ export function TopBar() {
       : (() => { const I = PRESET_ICONS[preference.preset as ThemePresetId]; return I ? <I size={14} /> : <Moon size={14} /> })()
 
   return (
-    <header className="flex items-center h-12 px-2 border-b border-[var(--color-border)] bg-[var(--color-bg)] select-none gap-1">
+    <header className="flex items-center h-12 px-2 border-b border-[var(--color-border)] bg-[var(--color-bg)] select-none gap-1 glass-panel">
       {/* Sidebar toggle */}
       <button
         onClick={toggleSidebar}

@@ -18,7 +18,7 @@ export function Sidebar() {
   if (!sidebarOpen) return null
 
   return (
-    <aside className="flex flex-col h-full bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] select-none" role="navigation" aria-label="Main navigation">
+    <aside className="flex flex-col h-full bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] select-none glass-panel" role="navigation" aria-label="Main navigation">
       {/* Header */}
       <div className="flex items-center justify-between px-3 h-12 border-b border-[var(--color-border)]">
         <span className="text-sm font-semibold text-[var(--color-text)] tracking-tight">
@@ -63,8 +63,8 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer',
                 isActive
-                  ? 'bg-[var(--color-accent-light)] text-[var(--color-accent)] font-medium'
-                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text)]',
+                  ? 'bg-[var(--color-accent-light)] text-[var(--color-accent)] font-medium border-l-2 border-[var(--color-accent)]'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text)] border-l-2 border-transparent',
               )}
             >
               <div
@@ -87,8 +87,8 @@ export function Sidebar() {
           className={cn(
             'flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer',
             location.pathname === '/settings'
-              ? 'bg-[var(--color-accent-light)] text-[var(--color-accent)] font-medium'
-              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text)]',
+              ? 'bg-[var(--color-accent-light)] text-[var(--color-accent)] font-medium border-l-2 border-[var(--color-accent)]'
+              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text)] border-l-2 border-transparent',
           )}
         >
           <Settings size={16} />
