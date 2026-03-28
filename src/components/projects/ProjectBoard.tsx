@@ -211,13 +211,13 @@ function TaskDetail({ task, onClose, onSave, onDelete }: {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-lg font-medium bg-transparent border-b border-[var(--color-border)] pb-2 text-[var(--color-text)] focus:outline-none focus:border-blue-500"
+            className="w-full text-lg font-medium bg-transparent border-b border-[var(--color-border)] pb-2 text-[var(--color-text)] focus:outline-none focus:border-[var(--color-accent)]"
             placeholder="Task title"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg p-2 resize-none text-[var(--color-text)] focus:outline-none focus:border-blue-500"
+            className="w-full text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg p-2 resize-none text-[var(--color-text)] focus:outline-none focus:border-[var(--color-accent)]"
             rows={3}
             placeholder="Description"
           />
@@ -278,7 +278,7 @@ function TaskDetail({ task, onClose, onSave, onDelete }: {
         <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)]">
           <button
             onClick={() => onDelete(task.id)}
-            className="text-xs text-red-500 hover:text-red-400 cursor-pointer"
+            className="text-xs text-[var(--color-error)] hover:opacity-80 cursor-pointer"
           >
             Delete
           </button>
@@ -286,7 +286,7 @@ function TaskDetail({ task, onClose, onSave, onDelete }: {
             <button onClick={onClose} className="px-3 py-1.5 text-xs rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] cursor-pointer">
               Cancel
             </button>
-            <button onClick={handleSave} className="px-3 py-1.5 text-xs rounded-lg bg-blue-500 text-white hover:bg-blue-600 cursor-pointer">
+            <button onClick={handleSave} className="px-3 py-1.5 text-xs rounded-lg bg-[var(--color-accent)] text-white hover:opacity-90 cursor-pointer">
               Save
             </button>
           </div>

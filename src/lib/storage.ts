@@ -8,14 +8,17 @@ const DB_VERSION = 1
 
 const STORES = {
   documents: 'documents',
-  spreadsheets: 'spreadsheets',
-  settings: 'settings',
-  workspace: 'workspace',
+  notepad: 'notepad',
+  ui: 'ui',
 } as const
 
 export type StoreName = (typeof STORES)[keyof typeof STORES]
 
+// Singleton DB connection
+let _db: IDBDatabase | null = null
+
 function openDB(): Promise<IDBDatabase> {
+  if (_db) return Promise.resolve(_db)
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION)
 
@@ -28,7 +31,10 @@ function openDB(): Promise<IDBDatabase> {
       }
     }
 
-    request.onsuccess = () => resolve(request.result)
+    request.onsuccess = () => {
+      _db = request.result
+      resolve(_db)
+    }
     request.onerror = () => reject(request.error)
   })
 }

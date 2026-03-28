@@ -49,7 +49,7 @@ function createDefaultElement(type: Tool, x: number, y: number): DesignElement {
     id: generateId(),
     x, y,
     fill: 'transparent',
-    stroke: '#1a1a2e',
+    stroke: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim() || '#1a1a2e',
     strokeWidth: 2,
     rotation: 0,
     opacity: 1,
@@ -62,7 +62,7 @@ function createDefaultElement(type: Tool, x: number, y: number): DesignElement {
     case 'line':
       return { ...base, type: 'line', width: 150, height: 2, strokeWidth: 2 }
     case 'text':
-      return { ...base, type: 'text', width: 150, height: 40, text: 'Text', fill: '#1a1a2e', fontSize: 24, fontWeight: '400' }
+      return { ...base, type: 'text', width: 150, height: 40, text: 'Text', fill: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim() || '#1a1a2e', fontSize: 24, fontWeight: '400' }
     case 'triangle':
       return { ...base, type: 'triangle', width: 100, height: 100 }
     case 'star':
@@ -138,9 +138,13 @@ function renderElement(ctx: CanvasRenderingContext2D, el: DesignElement, scale: 
 }
 
 function renderSelection(ctx: CanvasRenderingContext2D, el: DesignElement, scale: number) {
+  const cs = getComputedStyle(document.documentElement)
+  const accent = cs.getPropertyValue('--color-accent').trim() || '#0071e3'
+  const canvasBg = cs.getPropertyValue('--color-bg').trim() || '#ffffff'
+
   ctx.save()
   ctx.setLineDash([4 * scale, 4 * scale])
-  ctx.strokeStyle = '#0071e3'
+  ctx.strokeStyle = accent
   ctx.lineWidth = 1
   const pad = 4 * scale
   ctx.strokeRect(
@@ -152,8 +156,8 @@ function renderSelection(ctx: CanvasRenderingContext2D, el: DesignElement, scale
 
   // Handles
   ctx.setLineDash([])
-  ctx.fillStyle = '#ffffff'
-  ctx.strokeStyle = '#0071e3'
+  ctx.fillStyle = canvasBg
+  ctx.strokeStyle = accent
   ctx.lineWidth = 1
   const handleSize = 6 * scale
   const handles = [
@@ -221,11 +225,14 @@ export function DesignCanvas() {
     ctx.scale(dpr, dpr)
 
     // Background
-    ctx.fillStyle = '#ffffff'
+    const cs = getComputedStyle(document.documentElement)
+    const canvasBg = cs.getPropertyValue('--color-bg').trim() || '#ffffff'
+    const gridColor = cs.getPropertyValue('--color-border').trim() || '#f0f0f0'
+    ctx.fillStyle = canvasBg
     ctx.fillRect(0, 0, CANVAS_W * scale, CANVAS_H * scale)
 
     // Grid
-    ctx.strokeStyle = '#f0f0f0'
+    ctx.strokeStyle = gridColor
     ctx.lineWidth = 1
     const gridSize = 20 * scale
     for (let x = 0; x <= CANVAS_W * scale; x += gridSize) {
@@ -425,7 +432,7 @@ export function DesignCanvas() {
               })
               setSelectedId(null)
             }}
-            className="flex items-center gap-1 px-2 py-1 rounded-md text-xs hover:bg-red-50 text-red-500 cursor-pointer"
+            className="flex items-center gap-1 px-2 py-1 rounded-md text-xs hover:bg-[var(--color-error)]/10 text-[var(--color-error)] cursor-pointer"
             title="Delete"
           >
             <Trash2 size={14} /> Delete
@@ -627,7 +634,7 @@ export function DesignCanvas() {
                 >
                   <span
                     className="w-3 h-3 rounded-sm border border-[var(--color-border)]"
-                    style={{ background: el.fill === 'transparent' ? '#ffffff' : el.fill }}
+                    style={{ background: el.fill === 'transparent' ? 'var(--color-bg)' : el.fill }}
                   />
                   <span className="truncate flex-1">{el.type} {el.text || ''}</span>
                 </div>

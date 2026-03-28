@@ -6,6 +6,7 @@ import { Home } from '@/pages/Home'
 import { useTheme } from '@/hooks/useTheme'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { useDocumentStore } from '@/stores/documents'
+import { useNotepadStore } from '@/stores/notepad'
 
 // Lazy-load app pages for code-splitting
 const DocsPage = lazy(() => import('@/pages/Docs').then(m => ({ default: m.Docs })))
@@ -80,14 +81,22 @@ function AppInit() {
   useKeyboardShortcuts()
 
   const createWorkspace = useDocumentStore((s) => s.createWorkspace)
+  const loadDocs = useDocumentStore((s) => s._loadFromDB)
+  const loadNotepad = useNotepadStore((s) => s._loadFromDB)
   const workspaces = useDocumentStore((s) => s.workspaces)
   const initialized = useRef(false)
 
   useEffect(() => {
-    if (initialized.current || workspaces.length > 0) return
+    if (initialized.current) return
     initialized.current = true
-    createWorkspace()
-  }, [createWorkspace, workspaces.length])
+    // Load persisted data first, then create default workspace if needed
+    Promise.all([loadDocs(), loadNotepad()]).then(() => {
+      const ws = useDocumentStore.getState().workspaces
+      if (ws.length === 0) {
+        createWorkspace()
+      }
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }

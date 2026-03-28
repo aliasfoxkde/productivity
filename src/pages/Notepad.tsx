@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { FileCode, Plus, X, ChevronDown } from 'lucide-react'
+import { FileCode, Plus, X, ChevronDown, Pencil } from 'lucide-react'
 import { CodeEditor } from '@/components/notepad/CodeEditor'
 import { useNotepadStore } from '@/stores/notepad'
 import { AUTOSAVE_DELAY } from '@/lib/constants'
@@ -32,6 +32,10 @@ export function Notepad() {
   const hasInitialized = useRef(false)
   const [cursorInfo, setCursorInfo] = useState('Ln 1, Col 1')
   const [langMenuOpen, setLangMenuOpen] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const renameInputRef = useRef<HTMLInputElement>(null)
 
   // Create default file on first mount
   useEffect(() => {
@@ -71,9 +75,39 @@ export function Notepad() {
   const handleDelete = useCallback(
     (id: string, e: React.MouseEvent) => {
       e.stopPropagation()
-      deleteFile(id)
+      setConfirmDeleteId(id)
     },
-    [deleteFile],
+    [],
+  )
+
+  const confirmDelete = useCallback(
+    () => {
+      if (confirmDeleteId) {
+        deleteFile(confirmDeleteId)
+        setConfirmDeleteId(null)
+      }
+    },
+    [confirmDeleteId, deleteFile],
+  )
+
+  const handleRename = useCallback(
+    (id: string, currentName: string, e: React.MouseEvent) => {
+      e.stopPropagation()
+      setRenamingId(id)
+      setRenameValue(currentName)
+    },
+    [],
+  )
+
+  const commitRename = useCallback(
+    () => {
+      if (renamingId && renameValue.trim()) {
+        const store = useNotepadStore.getState()
+        store.renameFile(renamingId, renameValue.trim())
+      }
+      setRenamingId(null)
+    },
+    [renamingId, renameValue],
   )
 
   const handleLanguageChange = useCallback(
@@ -101,6 +135,14 @@ export function Notepad() {
     return () => document.removeEventListener('mousedown', handler)
   }, [langMenuOpen])
 
+  // Focus rename input
+  useEffect(() => {
+    if (renamingId) {
+      renameInputRef.current?.focus()
+      renameInputRef.current?.select()
+    }
+  }, [renamingId])
+
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
@@ -110,6 +152,7 @@ export function Notepad() {
             <button
               key={file.id}
               onClick={() => setActiveFile(file.id)}
+              onDoubleClick={(e) => handleRename(file.id, file.name, e)}
               className={`
                 flex items-center gap-1.5 px-3 py-2 text-sm border-r border-[var(--color-border)]
                 whitespace-nowrap min-w-0 shrink-0 transition-colors
@@ -120,10 +163,32 @@ export function Notepad() {
               `}
             >
               <FileCode size={14} className="shrink-0" />
-              <span className="truncate">{file.name}</span>
+              {renamingId === file.id ? (
+                <input
+                  ref={renameInputRef}
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitRename()
+                    if (e.key === 'Escape') setRenamingId(null)
+                  }}
+                  onBlur={commitRename}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-transparent text-sm outline-none w-24 border-b border-[var(--color-accent)]"
+                />
+              ) : (
+                <span className="truncate">{file.name}</span>
+              )}
+              <span
+                onClick={(e) => handleRename(file.id, file.name, e)}
+                className="p-0.5 rounded hover:bg-[var(--color-border)] shrink-0"
+                title="Rename"
+              >
+                <Pencil size={10} />
+              </span>
               <span
                 onClick={(e) => handleDelete(file.id, e)}
-                className="ml-1 p-0.5 rounded hover:bg-[var(--color-border)] shrink-0"
+                className="p-0.5 rounded hover:bg-[var(--color-border)] shrink-0"
               >
                 <X size={12} />
               </span>
@@ -189,6 +254,41 @@ export function Notepad() {
         </div>
         {activeFile && <span>{activeFile.name}</span>}
       </div>
+
+      {/* Delete confirmation dialog */}
+      {confirmDeleteId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setConfirmDeleteId(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirm delete"
+        >
+          <div
+            className="bg-[var(--color-bg)] rounded-xl shadow-xl border border-[var(--color-border)] mx-4 p-5 max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-medium text-[var(--color-text)] mb-1">Delete file?</h3>
+            <p className="text-xs text-[var(--color-text-secondary)] mb-4">
+              This will permanently delete "{files.find((f) => f.id === confirmDeleteId)?.name}". This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-3 py-1.5 text-xs rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-3 py-1.5 text-xs rounded-lg bg-[var(--color-error)] text-white hover:opacity-90 cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
