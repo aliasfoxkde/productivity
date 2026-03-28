@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useUIStore } from '@/stores/ui'
 
-/** Register global keyboard shortcuts */
+/** Register global keyboard shortcuts and unsaved changes guard */
 export function useKeyboardShortcuts() {
   const toggleCommandPalette = useUIStore((s) => s.toggleCommandPalette)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
@@ -43,4 +43,15 @@ export function useKeyboardShortcuts() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [toggleCommandPalette, toggleSidebar])
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const beforeUnload = (e: BeforeUnloadEvent) => {
+      if (useUIStore.getState().hasUnsavedChanges) {
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('beforeunload', beforeUnload)
+    return () => window.removeEventListener('beforeunload', beforeUnload)
+  }, [])
 }

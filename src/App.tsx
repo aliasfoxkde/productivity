@@ -29,6 +29,46 @@ function PageLoader() {
   )
 }
 
+// Top-level error boundary — catches errors outside page boundaries
+class GlobalErrorBoundary extends Component<{}, { hasError: boolean; error: Error | null }> {
+  constructor(props: {}) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Global error:', error, info.componentStack)
+  }
+
+  handleReload = () => window.location.reload()
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[var(--color-bg)]">
+          <div className="text-sm text-[var(--color-text-secondary)]">
+            Something went wrong.
+          </div>
+          {this.state.error && (
+            <div className="text-xs text-[var(--color-text-tertiary)] max-w-md text-center">{this.state.error.message}</div>
+          )}
+          <button
+            onClick={this.handleReload}
+            className="px-3 py-1.5 rounded-md text-xs bg-[var(--color-accent)] text-white cursor-pointer hover:opacity-90"
+          >
+            Reload
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 // Generic error boundary for lazy-loaded pages
 interface PageErrorBoundaryState {
   hasError: boolean
@@ -80,23 +120,21 @@ function AppInit() {
   useTheme()
   useKeyboardShortcuts()
 
-  const createWorkspace = useDocumentStore((s) => s.createWorkspace)
-  const loadDocs = useDocumentStore((s) => s._loadFromDB)
-  const loadNotepad = useNotepadStore((s) => s._loadFromDB)
-  const workspaces = useDocumentStore((s) => s.workspaces)
   const initialized = useRef(false)
 
   useEffect(() => {
     if (initialized.current) return
     initialized.current = true
     // Load persisted data first, then create default workspace if needed
+    const { _loadFromDB: loadDocs, createWorkspace } = useDocumentStore.getState()
+    const { _loadFromDB: loadNotepad } = useNotepadStore.getState()
     Promise.all([loadDocs(), loadNotepad()]).then(() => {
       const ws = useDocumentStore.getState().workspaces
       if (ws.length === 0) {
         createWorkspace()
       }
     })
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   return null
 }
@@ -104,23 +142,25 @@ function AppInit() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppInit />
-      <AppShell>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/docs" element={<PageErrorBoundary pageName="Documents"><DocsPage /></PageErrorBoundary>} />
-            <Route path="/sheets" element={<PageErrorBoundary pageName="Sheets"><SheetsPage /></PageErrorBoundary>} />
-            <Route path="/slides" element={<PageErrorBoundary pageName="Slides"><SlidesPage /></PageErrorBoundary>} />
-            <Route path="/diagrams" element={<PageErrorBoundary pageName="Diagrams"><DiagramsPage /></PageErrorBoundary>} />
-            <Route path="/projects" element={<PageErrorBoundary pageName="Projects"><ProjectsPage /></PageErrorBoundary>} />
-            <Route path="/design" element={<PageErrorBoundary pageName="Design"><DesignPage /></PageErrorBoundary>} />
-            <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><SettingsPage /></PageErrorBoundary>} />
-            <Route path="/notepad" element={<PageErrorBoundary pageName="Notepad"><NotepadPage /></PageErrorBoundary>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </AppShell>
+      <GlobalErrorBoundary>
+        <AppInit />
+        <AppShell>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/docs" element={<PageErrorBoundary pageName="Documents"><DocsPage /></PageErrorBoundary>} />
+              <Route path="/sheets" element={<PageErrorBoundary pageName="Sheets"><SheetsPage /></PageErrorBoundary>} />
+              <Route path="/slides" element={<PageErrorBoundary pageName="Slides"><SlidesPage /></PageErrorBoundary>} />
+              <Route path="/diagrams" element={<PageErrorBoundary pageName="Diagrams"><DiagramsPage /></PageErrorBoundary>} />
+              <Route path="/projects" element={<PageErrorBoundary pageName="Projects"><ProjectsPage /></PageErrorBoundary>} />
+              <Route path="/designer" element={<PageErrorBoundary pageName="Designer"><DesignPage /></PageErrorBoundary>} />
+              <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><SettingsPage /></PageErrorBoundary>} />
+              <Route path="/notepad" element={<PageErrorBoundary pageName="Notepad"><NotepadPage /></PageErrorBoundary>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </AppShell>
+      </GlobalErrorBoundary>
     </BrowserRouter>
   )
 }

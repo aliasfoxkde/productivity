@@ -54,7 +54,7 @@ export const APPS: AppDefinition[] = [
     description: 'Vector design tool with components, prototyping, and export',
     icon: 'Palette',
     color: '#ff453a',
-    route: '/design',
+    route: '/designer',
   },
   {
     id: 'notepad',

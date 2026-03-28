@@ -41,6 +41,7 @@ interface UIState {
   commandPaletteOpen: boolean
   tabs: TabState[]
   activeTabId: string | null
+  hasUnsavedChanges: boolean
 
   toggleSidebar: () => void
   setSidebarWidth: (width: number) => void
@@ -52,6 +53,7 @@ interface UIState {
   setActiveTab: (documentId: string) => void
   markTabDirty: (documentId: string, dirty: boolean) => void
   updateTabTitle: (documentId: string, title: string) => void
+  markClean: () => void
 }
 
 const initial = loadTabs()
@@ -62,6 +64,7 @@ export const useUIStore = create<UIState>((set) => ({
   commandPaletteOpen: false,
   tabs: initial.tabs,
   activeTabId: initial.activeTabId,
+  hasUnsavedChanges: false,
 
   toggleSidebar: () => set((s) => {
     const next = !s.sidebarOpen
@@ -132,6 +135,13 @@ export const useUIStore = create<UIState>((set) => ({
       tabs: s.tabs.map((t) =>
         t.documentId === documentId ? { ...t, isDirty: dirty } : t,
       ),
+      hasUnsavedChanges: dirty ? true : s.tabs.some((t) => t.documentId !== documentId && t.isDirty),
+    })),
+
+  markClean: () =>
+    set((s) => ({
+      tabs: s.tabs.map((t) => ({ ...t, isDirty: false })),
+      hasUnsavedChanges: false,
     })),
 
   updateTabTitle: (documentId, title) =>

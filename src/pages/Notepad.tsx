@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { FileCode, Plus, X, ChevronDown, Pencil } from 'lucide-react'
 import { CodeEditor } from '@/components/notepad/CodeEditor'
 import { useNotepadStore } from '@/stores/notepad'
+import { useUIStore } from '@/stores/ui'
 import { AUTOSAVE_DELAY } from '@/lib/constants'
 import { debounce } from '@/lib/utils'
 
@@ -29,6 +30,7 @@ export function Notepad() {
   const setActiveFile = useNotepadStore((s) => s.setActiveFile)
   const setLanguage = useNotepadStore((s) => s.setLanguage)
   const getActiveFile = useNotepadStore((s) => s.getActiveFile)
+  const markTabDirty = useUIStore((s) => s.markTabDirty)
   const hasInitialized = useRef(false)
   const [cursorInfo, setCursorInfo] = useState('Ln 1, Col 1')
   const [langMenuOpen, setLangMenuOpen] = useState(false)
@@ -58,11 +60,24 @@ export function Notepad() {
   const handleChange = useCallback(
     (value: string) => {
       if (activeFileId) {
+        markTabDirty(activeFileId, true)
         debouncedSave(activeFileId, value)
       }
     },
-    [activeFileId, debouncedSave],
+    [activeFileId, debouncedSave, markTabDirty],
   )
+
+  // Listen for save event — flush debounced save and mark clean
+  useEffect(() => {
+    const handler = () => {
+      if (activeFileId && activeFile) {
+        updateFile(activeFileId, activeFile.content)
+        markTabDirty(activeFileId, false)
+      }
+    }
+    window.addEventListener('app:save', handler)
+    return () => window.removeEventListener('app:save', handler)
+  }, [activeFileId, activeFile, updateFile, markTabDirty])
 
   const activeFile = getActiveFile()
 

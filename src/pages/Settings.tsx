@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Sun,
   Moon,
@@ -21,12 +21,16 @@ import { useThemeStore } from '@/stores/theme'
 import { THEME_PRESETS } from '@/lib/themes'
 import type { ThemePresetId } from '@/types'
 
+const isMac = typeof navigator !== 'undefined' && /Mac/i.test(navigator.userAgent)
+const mod = isMac ? '⌘' : 'Ctrl'
+
 const SHORTCUTS = [
-  { keys: ['Cmd', 'K'], description: 'Open command palette' },
-  { keys: ['Cmd', 'B'], description: 'Toggle sidebar' },
-  { keys: ['Cmd', 'S'], description: 'Save document' },
-  { keys: ['Cmd', 'Z'], description: 'Undo' },
-  { keys: ['Cmd', 'Shift', 'Z'], description: 'Redo' },
+  { keys: [mod, 'K'], description: 'Open command palette' },
+  { keys: [mod, 'B'], description: 'Toggle sidebar' },
+  { keys: [mod, 'S'], description: 'Save document' },
+  { keys: [mod, 'N'], description: 'New document' },
+  { keys: [mod, 'Z'], description: 'Undo' },
+  { keys: [mod, 'Shift', 'Z'], description: 'Redo' },
   { keys: ['Delete'], description: 'Delete selected' },
   { keys: ['Escape'], description: 'Close modal / deselect' },
 ]
@@ -48,6 +52,9 @@ export function Settings() {
   const [activeSection, setActiveSection] = useState<string>('appearance')
   const [showCustomize, setShowCustomize] = useState(false)
   const [storageInfo, setStorageInfo] = useState<Record<string, number>>({})
+
+  // Load storage info on mount
+  useEffect(() => { loadStorageInfo() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStorageInfo = async () => {
     const counts: Record<string, number> = {}
@@ -320,7 +327,7 @@ export function Settings() {
                   loadStorageInfo()
                 }
               }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-500 border border-red-200 hover:bg-red-50 cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-error)] border border-[var(--color-error)]/30 hover:bg-[var(--color-error)]/10 cursor-pointer"
             >
               <Trash2 size={14} />
               Clear All Data

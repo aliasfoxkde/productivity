@@ -4,6 +4,7 @@ import '@/styles/ckeditor5.css'
 import { Editor } from '@/components/editor/Editor'
 import { ExportButton } from '@/components/shared/ExportButton'
 import { useDocumentStore } from '@/stores/documents'
+import { useUIStore } from '@/stores/ui'
 import { debounce } from '@/lib/utils'
 import type { ExportableDocument } from '@/lib/export'
 
@@ -13,6 +14,8 @@ export function Docs() {
   const createDocument = useDocumentStore((s) => s.createDocument)
   const updateDocument = useDocumentStore((s) => s.updateDocument)
   const documents = useDocumentStore((s) => s.documents)
+  const markTabDirty = useUIStore((s) => s.markTabDirty)
+  const markClean = useUIStore((s) => s.markClean)
   const hasInitialized = useRef(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -64,11 +67,24 @@ export function Docs() {
   const handleUpdate = useCallback(
     (html: string) => {
       if (docId) {
+        markTabDirty(docId, true)
         debouncedSave(docId, html)
       }
     },
-    [docId, debouncedSave],
+    [docId, debouncedSave, markTabDirty],
   )
+
+  // Listen for save event — flush debounced save and mark clean
+  useEffect(() => {
+    const handler = () => {
+      if (docId && currentDoc) {
+        updateDocument(docId, { content: currentDoc.content })
+        markTabDirty(docId, false)
+      }
+    }
+    window.addEventListener('app:save', handler)
+    return () => window.removeEventListener('app:save', handler)
+  }, [docId, currentDoc, updateDocument, markTabDirty])
 
   const handleImport = useCallback(
     (imported: ExportableDocument) => {

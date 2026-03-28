@@ -1,11 +1,21 @@
+import { useEffect } from 'react'
 import { Download } from 'lucide-react'
 import { Spreadsheet } from '@/components/spreadsheet/Spreadsheet'
 import { useSpreadsheetStore } from '@/stores/spreadsheet'
+import { useUIStore } from '@/stores/ui'
 import { exportToCSV, downloadFile } from '@/lib/export'
 
 export function Sheets() {
   const sheets = useSpreadsheetStore((s) => s.sheets)
   const activeSheetId = useSpreadsheetStore((s) => s.activeSheetId)
+  const markClean = useUIStore((s) => s.markClean)
+
+  // Spreadsheet auto-saves on every edit, so save just marks clean
+  useEffect(() => {
+    const handler = () => markClean()
+    window.addEventListener('app:save', handler)
+    return () => window.removeEventListener('app:save', handler)
+  }, [markClean])
 
   const handleExportCSV = () => {
     const sheet = sheets.find((s) => s.id === activeSheetId)
